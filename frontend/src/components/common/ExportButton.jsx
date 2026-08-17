@@ -25,10 +25,10 @@ export default function ExportButton({ type, label, className = '' }) {
     try {
       if (type === 'csv') {
         const csv = await exportCSV();
-        downloadBlob(csv, 'URL-Tracer_attacks_demo.csv', 'text/csv');
+        downloadBlob(csv, 'NetTrace_attacks_demo.csv', 'text/csv');
       } else {
         const json = await exportJSON();
-        downloadBlob(JSON.stringify(json, null, 2), 'URL-Tracer_analysis_demo.json', 'application/json');
+        downloadBlob(JSON.stringify(json, null, 2), 'NetTrace_analysis_demo.json', 'application/json');
       }
     } catch (err) {
       console.error('Export failed:', err);

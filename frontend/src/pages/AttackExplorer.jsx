@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, X, ExternalLink, Activity, Info } from 'lucide-react';
+import {
+  ChevronLeft, ChevronRight, X, Activity, Info,
+  ShieldAlert, Clock, Shield, AlertTriangle, Globe, Zap
+} from 'lucide-react';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 import { getAttacks } from '../api/apiService.js';
 import FilterBar      from '../components/common/FilterBar.jsx';
@@ -11,56 +15,91 @@ import ExportButton   from '../components/common/ExportButton.jsx';
 
 const PAGE_SIZE = 12;
 
-// Detail modal
+// ── Threat Detail Drawer ────────────────────────────────────
 function AttackDetail({ attack, onClose }) {
   if (!attack) return null;
+
+  const riskColor =
+    attack.severity === 'CRITICAL' ? '#f87171' :
+    attack.severity === 'HIGH'     ? '#fb923c' :
+    attack.severity === 'MEDIUM'   ? '#fbbf24' : '#4ade80';
+
+  const circumference = 2 * Math.PI * 40;
+  const confidence = attack.confidence ?? 0.9;
+  const offset = circumference * (1 - confidence);
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div className="absolute inset-0 bg-dark-950/80 backdrop-blur-sm" />
+    <>
       <div
-        className="relative glass-card border border-dark-500 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in"
-        onClick={e => e.stopPropagation()}
-      >
+        className="fixed inset-0 z-50"
+        style={{ background: 'rgba(2,8,8,0.7)', backdropFilter: 'blur(4px)' }}
+        onClick={onClose}
+      />
+      <aside className="drawer z-50">
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-dark-700/50">
+        <div className="flex items-center justify-between px-6 py-5 flex-shrink-0"
+             style={{ borderBottom: '1px solid rgba(3,83,82,0.2)' }}>
           <div>
             <div className="flex items-center gap-2 mb-1">
               <RiskBadge severity={attack.severity} />
-              <span className="text-xs font-mono text-slate-500">{attack.id}</span>
+              <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{attack.id}</span>
             </div>
-            <h2 className="text-lg font-bold text-white">{attack.attack_type}</h2>
+            <h2 className="text-lg font-bold" style={{ color: '#F3E8BC' }}>Threat Analysis</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-dark-700 rounded-lg transition-colors">
-            <X className="w-5 h-5 text-slate-400" />
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: 'rgba(3,83,82,0.12)', border: '1px solid rgba(3,83,82,0.25)', color: 'var(--text-secondary)' }}
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-5 space-y-5">
-          {/* Warning */}
-          <div className="flex items-start gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
-            <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            This is simulated/synthetic data. Not real intelligence.
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {/* Confidence gauge */}
+          <div className="text-center py-3">
+            <div className="relative w-24 h-24 mx-auto mb-3">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(3,83,82,0.15)" strokeWidth="6"/>
+                <circle
+                  cx="50" cy="50" r="40" fill="none"
+                  stroke={riskColor} strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={offset}
+                  style={{ transition: 'stroke-dashoffset 1s ease' }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-xl font-bold num-display" style={{ color: riskColor }}>
+                  {Math.round(confidence * 100)}
+                </span>
+                <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>%</span>
+              </div>
+            </div>
+            <h3 className="text-xl font-bold" style={{ color: '#F3E8BC' }}>{attack.attack_type}</h3>
+            <p className="text-sm mt-1" style={{ color: riskColor }}>● {attack.severity}</p>
           </div>
 
-          {/* Grid fields */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Fields */}
+          <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Source IP',        value: attack.source_ip,        mono: true, accent: true },
-              { label: 'Timestamp',        value: format(parseISO(attack.timestamp), 'PPpp'), mono: true },
-              { label: 'Detection Method', value: attack.detection_method },
-              { label: 'Result',           value: attack.result === 'POTENTIAL_SUCCESS' ? '⚡ Potential Success' : '⚠ Attempt',
-                cls: attack.result === 'POTENTIAL_SUCCESS' ? 'text-red-400' : 'text-yellow-400' },
-              { label: 'Confidence',       value: `${(attack.confidence * 100).toFixed(1)}%`, mono: true },
-              { label: 'Severity',         custom: <RiskBadge severity={attack.severity} /> },
-            ].map(({ label, value, custom, mono, accent, cls }) => (
-              <div key={label} className="bg-dark-800/60 rounded-lg p-3">
-                <p className="text-xs text-slate-500 mb-1">{label}</p>
+              { label: 'Source IP',   value: attack.source_ip, accent: true },
+              { label: 'Timestamp',   value: format(parseISO(attack.timestamp), 'MM/dd HH:mm:ss'), mono: true },
+              { label: 'Method',      value: attack.detection_method },
+              { label: 'Result',
+                value: attack.result === 'POTENTIAL_SUCCESS' ? '⚡ Potential Success' : '⚠ Attempt',
+                color: attack.result === 'POTENTIAL_SUCCESS' ? '#f87171' : '#fbbf24' },
+              { label: 'ML Confidence', value: `${(confidence * 100).toFixed(1)}%`, mono: true },
+              { label: 'Severity',    custom: <RiskBadge severity={attack.severity} /> },
+            ].map(({ label, value, custom, mono, accent, color }) => (
+              <div key={label} className="rounded-xl p-3"
+                   style={{ background: 'rgba(3,83,82,0.08)', border: '1px solid rgba(3,83,82,0.15)' }}>
+                <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>{label}</p>
                 {custom ?? (
-                  <p className={`text-sm font-medium ${mono ? 'font-mono' : ''} ${accent ? 'text-cyber-400' : cls ?? 'text-slate-200'}`}>
+                  <p className={`text-sm font-medium ${mono ? 'font-mono' : ''}`}
+                     style={{ color: accent ? '#F3E8BC' : color ?? 'var(--text-primary)' }}>
                     {value}
                   </p>
                 )}
@@ -69,44 +108,75 @@ function AttackDetail({ attack, onClose }) {
           </div>
 
           {/* Target URL */}
-          <div className="bg-dark-800/60 rounded-lg p-3">
-            <p className="text-xs text-slate-500 mb-1.5">Target URL</p>
-            <p className="text-xs font-mono text-slate-300 break-all leading-relaxed">{attack.target_url}</p>
+          <div className="rounded-xl p-3" style={{ background: 'rgba(3,83,82,0.08)', border: '1px solid rgba(3,83,82,0.15)' }}>
+            <p className="text-[10px] uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>Target URL</p>
+            <p className="text-xs font-mono break-all leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+              {attack.target_url}
+            </p>
           </div>
 
           {/* Payload */}
-          <div className="bg-dark-800/60 rounded-lg p-3">
-            <p className="text-xs text-slate-500 mb-1.5">Payload / Indicator</p>
-            <p className="text-xs font-mono text-red-400 break-all leading-relaxed">{attack.payload}</p>
+          <div className="rounded-xl p-3" style={{ background: 'rgba(180,30,30,0.08)', border: '1px solid rgba(180,30,30,0.2)' }}>
+            <p className="text-[10px] uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>Payload / Indicator</p>
+            <p className="text-xs font-mono break-all leading-relaxed" style={{ color: '#f87171' }}>
+              {attack.payload}
+            </p>
           </div>
 
           {/* Confidence bar */}
-          <div className="bg-dark-800/60 rounded-lg p-3">
+          <div className="rounded-xl p-3" style={{ background: 'rgba(3,83,82,0.08)', border: '1px solid rgba(3,83,82,0.15)' }}>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-slate-500">ML Confidence Score</p>
-              <p className="text-xs font-mono font-bold text-cyber-400">
-                {(attack.confidence * 100).toFixed(1)}%
-              </p>
+              <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>ML Confidence Score</p>
+              <p className="text-xs font-mono font-bold" style={{ color: '#F3E8BC' }}>{(confidence * 100).toFixed(1)}%</p>
             </div>
             <div className="progress-bar h-2">
               <div
-                className={`progress-fill ${attack.confidence >= 0.9 ? 'bg-red-500' : attack.confidence >= 0.75 ? 'bg-orange-500' : 'bg-yellow-500'}`}
-                style={{ width: `${attack.confidence * 100}%` }}
+                className="progress-fill"
+                style={{
+                  width: `${confidence * 100}%`,
+                  background: confidence >= 0.9 ? '#f87171' : confidence >= 0.75 ? '#fb923c' : '#fbbf24',
+                }}
               />
             </div>
           </div>
+
+          {/* Detected indicators */}
+          <div className="rounded-xl p-4" style={{ background: 'rgba(3,83,82,0.08)', border: '1px solid rgba(3,83,82,0.18)' }}>
+            <p className="text-xs font-semibold mb-3" style={{ color: '#F3E8BC' }}>Recommended Action</p>
+            <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#f87171' }}>
+              <Shield className="w-4 h-4" />
+              Block IP Address
+            </div>
+          </div>
+
+          {/* Simulated notice */}
+          <div className="flex items-start gap-2 rounded-lg px-3 py-2.5 text-xs"
+               style={{ background: 'rgba(243,232,188,0.05)', border: '1px solid rgba(243,232,188,0.12)' }}>
+            <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#F3E8BC' }} />
+            <span style={{ color: 'var(--text-muted)' }}>Simulated / synthetic data. Not real intelligence.</span>
+          </div>
         </div>
-      </div>
-    </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 flex-shrink-0" style={{ borderTop: '1px solid rgba(3,83,82,0.2)' }}>
+          <button className="btn-primary w-full justify-center">
+            <Shield className="w-4 h-4" />
+            Block IP Address
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
 
+// ── Main ───────────────────────────────────────────────────
 export default function AttackExplorer() {
-  const [attacks, setAttacks]       = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [selected, setSelected]     = useState(null);
-  const [page, setPage]             = useState(1);
-  const [filters, setFilters]       = useState({
+  usePageMeta('Attack Explorer', 'NetTrace Security — Browse, filter and inspect all detected URL-based cyberattacks.');
+  const [attacks, setAttacks]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [page, setPage]         = useState(1);
+  const [filters, setFilters]   = useState({
     search: '', attack_type: 'ALL', severity: 'ALL', result: 'ALL', source_ip: ''
   });
 
@@ -129,13 +199,15 @@ export default function AttackExplorer() {
   const paged      = attacks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      {/* Header row */}
+    <div className="space-y-5 animate-fade-in">
+
+      {/* ── Header row ────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-cyber-500" />
-          <span className="text-sm text-slate-400 font-mono">
-            {attacks.length} attack{attacks.length !== 1 ? 's' : ''} found
+          <ShieldAlert className="w-4 h-4" style={{ color: '#F3E8BC' }} />
+          <span className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
+            <span style={{ color: '#F3E8BC', fontWeight: 700 }}>{attacks.length}</span>
+            {' '}attack{attacks.length !== 1 ? 's' : ''} found
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -144,19 +216,15 @@ export default function AttackExplorer() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* ── Filters ───────────────────────────────────── */}
       <FilterBar filters={filters} onFilter={setFilters} />
 
-      {/* Table */}
-      <div className="glass-card border border-dark-600/50 overflow-hidden">
+      {/* ── Table ─────────────────────────────────────── */}
+      <div className="glass-card overflow-hidden">
         {loading ? (
           <LoadingSpinner message="Fetching attacks..." />
         ) : attacks.length === 0 ? (
-          <EmptyState
-            title="No attacks found"
-            message="Try adjusting your filters to see results."
-            icon="search"
-          />
+          <EmptyState title="No attacks found" message="Try adjusting your filters to see results." icon="search" />
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -170,38 +238,50 @@ export default function AttackExplorer() {
                     <th>Confidence</th>
                     <th>Result</th>
                     <th>Method</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paged.map(atk => (
-                    <tr key={atk.id} onClick={() => setSelected(atk)}>
-                      <td className="font-mono text-xs text-slate-400 whitespace-nowrap">
+                    <tr
+                      key={atk.id}
+                      onClick={() => setSelected(atk)}
+                      className={selected?.id === atk.id ? 'selected' : ''}
+                    >
+                      <td className="font-mono text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
                         {format(parseISO(atk.timestamp), 'MM/dd HH:mm:ss')}
                       </td>
-                      <td className="font-mono text-xs text-cyber-400 whitespace-nowrap">{atk.source_ip}</td>
-                      <td className="text-slate-200 whitespace-nowrap">{atk.attack_type}</td>
+                      <td className="font-mono text-xs whitespace-nowrap" style={{ color: '#F3E8BC' }}>
+                        {atk.source_ip}
+                      </td>
+                      <td style={{ color: 'var(--text-primary)' }}>{atk.attack_type}</td>
                       <td><RiskBadge severity={atk.severity} /></td>
                       <td>
                         <div className="flex items-center gap-2">
                           <div className="progress-bar w-14">
-                            <div
-                              className="progress-fill bg-cyber-500"
-                              style={{ width: `${atk.confidence * 100}%` }}
-                            />
+                            <div className="progress-fill" style={{ width: `${atk.confidence * 100}%`, background: '#035352' }} />
                           </div>
-                          <span className="text-xs font-mono text-slate-400">
+                          <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
                             {(atk.confidence * 100).toFixed(0)}%
                           </span>
                         </div>
                       </td>
                       <td>
-                        <span className={`text-xs font-mono font-semibold ${
-                          atk.result === 'POTENTIAL_SUCCESS' ? 'text-red-400' : 'text-yellow-400'
-                        }`}>
+                        <span className="text-xs font-mono font-semibold"
+                              style={{ color: atk.result === 'POTENTIAL_SUCCESS' ? '#f87171' : '#fbbf24' }}>
                           {atk.result === 'POTENTIAL_SUCCESS' ? '⚡ SUCCESS' : '⚠ ATTEMPT'}
                         </span>
                       </td>
-                      <td className="text-xs text-slate-500">{atk.detection_method}</td>
+                      <td className="text-xs" style={{ color: 'var(--text-muted)' }}>{atk.detection_method}</td>
+                      <td>
+                        <button
+                          className="text-xs px-2.5 py-1 rounded-lg transition-all"
+                          style={{ background: 'rgba(3,83,82,0.12)', border: '1px solid rgba(3,83,82,0.25)', color: '#F3E8BC' }}
+                          onClick={e => { e.stopPropagation(); setSelected(atk); }}
+                        >
+                          View
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -210,9 +290,10 @@ export default function AttackExplorer() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-dark-700/50">
-                <span className="text-xs text-slate-500 font-mono">
-                  Page {page} of {totalPages} &nbsp;·&nbsp; {attacks.length} records
+              <div className="flex items-center justify-between px-5 py-3"
+                   style={{ borderTop: '1px solid rgba(3,83,82,0.12)' }}>
+                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                  Page {page} of {totalPages} · {attacks.length} records
                 </span>
                 <div className="flex items-center gap-1">
                   <button
@@ -226,11 +307,12 @@ export default function AttackExplorer() {
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors ${
-                        p === page
-                          ? 'bg-cyber-700 text-white'
-                          : 'bg-dark-800 text-slate-400 hover:bg-dark-700'
-                      }`}
+                      className="px-3 py-1.5 rounded-lg text-xs font-mono transition-colors"
+                      style={{
+                        background: p === page ? '#035352' : 'rgba(3,83,82,0.08)',
+                        color: p === page ? '#F3E8BC' : 'var(--text-muted)',
+                        border: `1px solid ${p === page ? 'rgba(3,83,82,0.5)' : 'rgba(3,83,82,0.15)'}`,
+                      }}
                     >
                       {p}
                     </button>
@@ -249,7 +331,7 @@ export default function AttackExplorer() {
         )}
       </div>
 
-      {/* Detail modal */}
+      {/* Detail drawer */}
       {selected && <AttackDetail attack={selected} onClose={() => setSelected(null)} />}
     </div>
   );

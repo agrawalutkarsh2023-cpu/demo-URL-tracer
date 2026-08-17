@@ -3,9 +3,9 @@ predict.py
 Prediction interface for the trained Random Forest model.
 
 Public functions (called by backend ml_service.py):
-    load_model_once()       — lazy singleton model loader
-    predict(request_data)   — single-record prediction
-    batch_predict(records)  — list of predictions
+    load_model_once()       -- lazy singleton model loader
+    predict(request_data)   -- single-record prediction
+    batch_predict(records)  -- list of predictions
 
 Output format:
     {
@@ -18,7 +18,7 @@ Output format:
 If confidence < LOW_CONFIDENCE_THRESHOLD:
     {"prediction": "LOW_CONFIDENCE", "confidence": <score>, ...}
 
-DEMO PROTOTYPE — all predictions are on synthetic / demo data only.
+DEMO PROTOTYPE -- all predictions are on synthetic / demo data only.
 """
 
 import os
@@ -34,10 +34,10 @@ sys.path.insert(0, os.path.dirname(__file__))
 from features import extract_features_from_record, FEATURE_NAMES
 from model import load_model as _load_model_raw
 
-# ─── Confidence threshold ────────────────────────────────────────────────────────
-LOW_CONFIDENCE_THRESHOLD = 0.55  # below this → return LOW_CONFIDENCE
+# --- Confidence threshold --------------------------------------------------------
+LOW_CONFIDENCE_THRESHOLD = 0.55  # below this -> return LOW_CONFIDENCE
 
-# ─── Singleton state ─────────────────────────────────────────────────────────────
+# --- Singleton state -------------------------------------------------------------
 _model   = None
 _encoder = None
 _model_available = False
@@ -49,7 +49,7 @@ def load_model_once() -> bool:
 
     Returns
     -------
-    bool — True if model loaded successfully, False otherwise.
+    bool -- True if model loaded successfully, False otherwise.
     The backend can use this to decide whether to fall back to rule-based detection.
     """
     global _model, _encoder, _model_available
@@ -151,7 +151,7 @@ def batch_predict(records: list[dict]) -> list[dict]:
 
     Returns
     -------
-    list[dict]  — same length as input, same order
+    list[dict]  -- same length as input, same order
     """
     return [predict(r) for r in records]
 
@@ -180,7 +180,7 @@ def get_model_status() -> dict:
     return status
 
 
-# ─── CLI demo ────────────────────────────────────────────────────────────────────
+# --- CLI demo --------------------------------------------------------------------
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
@@ -228,9 +228,9 @@ if __name__ == "__main__":
     print("=" * 60)
 
     status = get_model_status()
-    print(f"\nModel status: {'✓ Available' if status['ml_available'] else '✗ Not trained'}")
+    print(f"\nModel status: {'[OK] Available' if status['ml_available'] else '✗ Not trained'}")
     if not status["ml_available"]:
-        print("  → Run: python ml_data/train.py")
+        print("  -> Run: python ml_data/train.py")
         sys.exit(1)
 
     print(f"Classes: {status.get('classes', [])}")
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
     for req in demo_requests:
         result = predict(req)
-        conf_bar = "█" * int(result["confidence"] * 30)
+        conf_bar = "#" * int(result["confidence"] * 30)
         print(f"  URL:        {req['url'][:60]}")
         print(f"  Prediction: {result['prediction']:<25}  Confidence: {result['confidence']:.2%}  {conf_bar}")
         print(f"  Label:      {result['label']}")

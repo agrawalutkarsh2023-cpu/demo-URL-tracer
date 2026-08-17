@@ -2,7 +2,7 @@
 generate_dataset.py
 Synthetic HTTP traffic dataset generator.
 
-DEMO PROTOTYPE — All data is entirely synthetic.
+DEMO PROTOTYPE -- All data is entirely synthetic.
 No real IPs, no real credentials, no real victims, no real IPDR data.
 
 Generates ~1,100 records covering 13 attack types + Normal traffic.
@@ -24,15 +24,15 @@ SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
-# ─── Output path ────────────────────────────────────────────────────────────────
+# --- Output path ----------------------------------------------------------------
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "data")
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, "synthetic_traffic.csv")
 
-# ─── Simulated IPs (all RFC-1918 / example ranges — not real hosts) ─────────────
+# --- Simulated IPs (all RFC-1918 / example ranges -- not real hosts) -------------
 SRC_IPS = [f"10.0.{r}.{h}" for r in range(0, 5) for h in range(1, 16)]
 DST_IPS = [f"192.168.1.{x}" for x in [10, 20, 30, 50]]
 
-# ─── Realistic user agents ──────────────────────────────────────────────────────
+# --- Realistic user agents ------------------------------------------------------
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/605.1.15",
@@ -72,7 +72,7 @@ def _rand_host() -> str:
     return random.choice(HOSTS)
 
 
-# ─── Attack-specific URL generators ──────────────────────────────────────────────
+# --- Attack-specific URL generators ----------------------------------------------
 
 def _normal_urls(n: int):
     paths = [
@@ -390,7 +390,7 @@ def _typosquatting_urls(n: int):
     return rows
 
 
-# ─── Assemble dataset ──────────────────────────────────────────────────────────
+# --- Assemble dataset ----------------------------------------------------------
 
 def generate_dataset() -> pd.DataFrame:
     all_rows = []
@@ -435,7 +435,7 @@ def generate_dataset() -> pd.DataFrame:
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     df.to_csv(OUTPUT_FILE, index=False)
-    print(f"[generate_dataset] Saved {len(df)} records → {OUTPUT_FILE}")
+    print(f"[generate_dataset] Saved {len(df)} records -> {OUTPUT_FILE}")
     print(df["attack_type"].value_counts().to_string())
     return df
 

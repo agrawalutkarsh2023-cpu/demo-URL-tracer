@@ -4,9 +4,9 @@ Feature extraction for URL-based attack detection.
 
 Extracts 13 numeric/boolean features from a raw HTTP request record.
 All features are computed from the URL, HTTP method, status code,
-response size, and host — no external APIs required.
+response size, and host -- no external APIs required.
 
-DEMO PROTOTYPE — designed for use with the synthetic dataset.
+DEMO PROTOTYPE -- designed for use with the synthetic dataset.
 """
 
 import re
@@ -19,7 +19,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-# ─── Suspicious keywords per attack class ────────────────────────────────────────
+# --- Suspicious keywords per attack class ----------------------------------------
 # Used to count how many attack-pattern keywords appear in a URL.
 _SUSPICIOUS_KEYWORDS = [
     # SQL
@@ -58,7 +58,7 @@ _METHOD_MAP = {
 }
 
 
-# ─── Per-record feature extraction ───────────────────────────────────────────────
+# --- Per-record feature extraction -----------------------------------------------
 
 def extract_features_from_record(record: dict) -> dict:
     """
@@ -71,7 +71,7 @@ def extract_features_from_record(record: dict) -> dict:
 
     Returns
     -------
-    dict  — 13 numeric features
+    dict  -- 13 numeric features
     """
     url = str(record.get("url") or "")
     method = str(record.get("method") or "GET").upper()
@@ -88,49 +88,49 @@ def extract_features_from_record(record: dict) -> dict:
     path = parsed.path or ""
     query = parsed.query or ""
 
-    # ── Feature 1: url_length
+    # -- Feature 1: url_length
     url_length = len(url)
 
-    # ── Feature 2: param_count  (number of distinct query parameters)
+    # -- Feature 2: param_count  (number of distinct query parameters)
     try:
         params = parse_qs(query, keep_blank_values=True)
         param_count = len(params)
     except Exception:
         param_count = query.count("&") + (1 if query else 0)
 
-    # ── Feature 3: special_char_count
+    # -- Feature 3: special_char_count
     special_char_count = sum(1 for c in url if c in _SPECIAL_CHARS)
 
-    # ── Feature 4: encoding_count  (%xx sequences)
+    # -- Feature 4: encoding_count  (%xx sequences)
     encoding_count = len(_PERCENT_RE.findall(url))
 
-    # ── Feature 5: path_depth  (non-empty path segments)
+    # -- Feature 5: path_depth  (non-empty path segments)
     path_depth = len([s for s in path.split("/") if s])
 
-    # ── Feature 6: suspicious_keyword_count
+    # -- Feature 6: suspicious_keyword_count
     suspicious_keyword_count = len(_SUSPICIOUS_RE.findall(combined))
 
-    # ── Feature 7: http_method_encoded
+    # -- Feature 7: http_method_encoded
     http_method_encoded = _METHOD_MAP.get(method, 8)
 
-    # ── Feature 8: status_code
+    # -- Feature 8: status_code
     # Already an integer
 
-    # ── Feature 9: response_size
+    # -- Feature 9: response_size
     # Already an integer
 
-    # ── Feature 10: has_dot_dot  (directory traversal indicator)
+    # -- Feature 10: has_dot_dot  (directory traversal indicator)
     has_dot_dot = int(
         ".." in url or "%2e%2e" in url.lower() or "..../" in url
     )
 
-    # ── Feature 11: has_base64  (base64-looking blobs often encode payloads)
+    # -- Feature 11: has_base64  (base64-looking blobs often encode payloads)
     has_base64 = int(bool(re.search(r"(?:[A-Za-z0-9+/]{20,}={0,2})", url)))
 
-    # ── Feature 12: is_post  (POST requests are higher risk for injection)
+    # -- Feature 12: is_post  (POST requests are higher risk for injection)
     is_post = int(method == "POST")
 
-    # ── Feature 13: query_length
+    # -- Feature 13: query_length
     query_length = len(query)
 
     return {
@@ -153,7 +153,7 @@ def extract_features_from_record(record: dict) -> dict:
 FEATURE_NAMES = list(extract_features_from_record({}).keys())
 
 
-# ─── DataFrame-level extraction ───────────────────────────────────────────────────
+# --- DataFrame-level extraction ---------------------------------------------------
 
 def extract_features(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -166,7 +166,7 @@ def extract_features(df: pd.DataFrame) -> pd.DataFrame:
 
     Returns
     -------
-    pd.DataFrame  — shape (n, 13), columns = FEATURE_NAMES
+    pd.DataFrame  -- shape (n, 13), columns = FEATURE_NAMES
     """
     records = df.to_dict(orient="records")
     feature_rows = [extract_features_from_record(r) for r in records]

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://url-tracer-demo.example.com/sitemap.xml
+
+# URL-Tracer — Cyber Attack Detection & IP Intelligence System
+# DEMO PROTOTYPE — Synthetic data only

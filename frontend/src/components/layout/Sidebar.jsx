@@ -1,78 +1,121 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  ShieldAlert,
-  Globe,
-  FileSearch,
-  FileBarChart2,
-  Shield,
-  Wifi,
-  AlertTriangle,
+  LayoutDashboard, ShieldAlert, Globe, FileSearch,
+  FileBarChart2, Brain, Mail, Lock, Shield,
+  Activity, Wifi,
 } from 'lucide-react';
 
-const navItems = [
+const NAV_ITEMS = [
   { to: '/',                label: 'Dashboard',       icon: LayoutDashboard },
   { to: '/attacks',         label: 'Attack Explorer', icon: ShieldAlert },
   { to: '/ip-intelligence', label: 'IP Intelligence', icon: Globe },
   { to: '/pcap',            label: 'PCAP Analysis',   icon: FileSearch },
+  { to: '/ml',              label: 'ML Intelligence', icon: Brain },
   { to: '/reports',         label: 'Reports',         icon: FileBarChart2 },
+];
+
+const INFO_ITEMS = [
+  { to: '/contact', label: 'Contact Us',     icon: Mail },
+  { to: '/privacy', label: 'Privacy Policy', icon: Lock },
 ];
 
 export default function Sidebar() {
   return (
-    <aside className="flex flex-col w-64 min-h-screen bg-dark-900 border-r border-dark-700/60 flex-shrink-0">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-dark-700/60">
-        <div className="relative">
-          <div className="w-9 h-9 rounded-lg bg-cyber-600/20 border border-cyber-500/40 flex items-center justify-center glow-cyan">
-            <Shield className="w-5 h-5 text-cyber-400" />
+    <aside className="flex flex-col w-64 min-h-screen flex-shrink-0 glass-strong relative z-10">
+
+      {/* Top shimmer line */}
+      <div className="absolute top-0 left-0 right-0 h-px"
+           style={{ background: 'linear-gradient(90deg, transparent, rgba(243,232,188,0.25), transparent)' }} />
+
+      {/* ── Logo / Brand ─────────────────────────────── */}
+      <div className="flex items-center gap-3 px-5 py-6" style={{ borderBottom: '1px solid rgba(3,83,82,0.18)' }}>
+        {/* Shield Icon */}
+        <div className="relative flex-shrink-0">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center animate-glow-pulse"
+            style={{
+              background: 'linear-gradient(135deg, rgba(3,83,82,0.6) 0%, rgba(3,83,82,0.3) 100%)',
+              border: '1px solid rgba(3,83,82,0.6)',
+            }}
+          >
+            <Shield className="w-5 h-5" style={{ color: '#F3E8BC' }} />
           </div>
-          {/* Pulse dot */}
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-cyber-400 animate-pulse-slow" />
+          {/* Live pulse dot */}
+          <span
+            className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full animate-pulse-slow"
+            style={{ background: '#4ade80', boxShadow: '0 0 6px rgba(74,222,128,0.6)' }}
+          />
         </div>
-        <div>
-          <span className="text-base font-bold text-white tracking-tight"><URL-Tracer></URL-Tracer></span>
-          <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">Detection System</p>
+
+        <div className="min-w-0">
+          <span className="text-base font-bold tracking-tight truncate block" style={{ color: '#F3E8BC' }}>
+            NetTrace
+          </span>
+          <p className="text-[10px] font-mono tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
+            Security Platform
+          </p>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        <p className="px-3 mb-2 text-[10px] font-semibold text-slate-600 uppercase tracking-widest">
+      {/* ── Main Navigation ──────────────────────────── */}
+      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto" aria-label="Main navigation">
+        <p className="px-3 mb-3 text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
           Navigation
         </p>
-        {navItems.map(({ to, label, icon: Icon }) => (
+
+        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
-            className={({ isActive }) =>
-              `nav-link ${isActive ? 'active' : ''}`
-            }
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
           >
             <Icon className="w-4 h-4 flex-shrink-0" />
             <span>{label}</span>
           </NavLink>
         ))}
+
+        {/* ── Divider ── */}
+        <div className="pt-4 pb-1">
+          <p className="px-3 mb-3 text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+            Info
+          </p>
+          {INFO_ITEMS.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </div>
       </nav>
 
-      {/* Demo notice */}
-      <div className="px-4 py-4 border-t border-dark-700/60">
-        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
-          <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-xs font-semibold text-amber-400">Demo Mode</p>
-            <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">
-              All data is synthetic &amp; simulated. Not real intelligence.
-            </p>
-          </div>
+      {/* ── System Status Footer ─────────────────────── */}
+      <div className="px-4 py-5 flex-shrink-0" style={{ borderTop: '1px solid rgba(3,83,82,0.18)' }}>
+        {/* Demo mode chip */}
+        <div
+          className="rounded-xl p-3 mb-3"
+          style={{ background: 'rgba(243,232,188,0.05)', border: '1px solid rgba(243,232,188,0.12)' }}
+        >
+          <p className="text-xs font-semibold mb-0.5" style={{ color: '#F3E8BC' }}>
+            ⚡ Demo Mode
+          </p>
+          <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            All data is synthetic &amp; simulated. Not real intelligence.
+          </p>
         </div>
 
-        {/* Status */}
-        <div className="mt-3 flex items-center gap-2">
-          <Wifi className="w-3.5 h-3.5 text-cyber-500" />
-          <span className="text-[10px] font-mono text-cyber-600">DEMO-ENV ACTIVE</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-cyber-500 animate-pulse ml-auto" />
+        {/* Connection indicator */}
+        <div className="flex items-center gap-2">
+          <Wifi className="w-3.5 h-3.5" style={{ color: 'var(--teal-primary)' }} />
+          <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>DEMO-ENV ACTIVE</span>
+          <span
+            className="w-1.5 h-1.5 rounded-full ml-auto animate-pulse-slow"
+            style={{ background: '#4ade80' }}
+          />
         </div>
       </div>
     </aside>

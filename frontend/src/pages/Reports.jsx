@@ -2,32 +2,45 @@ import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import {
   FileDown, FileJson, FileText, ShieldAlert, Globe,
-  CheckCircle2, AlertTriangle, ChevronDown, ChevronUp, Info
+  CheckCircle2, AlertTriangle, ChevronDown, ChevronUp, Info,
+  Activity
 } from 'lucide-react';
 
 import { mockDashboard, mockAttacks, mockIPProfiles } from '../mock/mockData.js';
 import ExportButton from '../components/common/ExportButton.jsx';
 import RiskBadge    from '../components/common/RiskBadge.jsx';
 import StatCard     from '../components/common/StatCard.jsx';
-import { Activity } from 'lucide-react';
+import usePageMeta  from '../hooks/usePageMeta.js';
 
+// ── Collapsible Section ─────────────────────────────────────
 function Section({ title, children, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="glass-card border border-dark-600/50 overflow-hidden">
+    <div className="glass-card overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-dark-700/30 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 transition-colors"
+        style={{ color: 'var(--text-primary)' }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(3,83,82,0.06)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
-        <span className="text-sm font-semibold text-white">{title}</span>
-        {open ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+        <span className="text-sm font-semibold" style={{ color: '#F3E8BC' }}>{title}</span>
+        {open
+          ? <ChevronUp className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+          : <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+        }
       </button>
-      {open && <div className="border-t border-dark-700/50">{children}</div>}
+      {open && (
+        <div style={{ borderTop: '1px solid rgba(3,83,82,0.15)' }}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function Reports() {
+  usePageMeta('Reports', 'NetTrace Security — Export and review detection reports, attack logs, and IP intelligence data.');
   const successCount = mockAttacks.filter(a => a.result === 'POTENTIAL_SUCCESS').length;
   const critCount    = mockAttacks.filter(a => a.severity === 'CRITICAL').length;
   const ipProfiles   = Object.values(mockIPProfiles);
@@ -36,41 +49,48 @@ export default function Reports() {
   return (
     <div className="space-y-5 animate-fade-in">
 
-      {/* Notice */}
-      <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-2.5">
-        <Info className="w-4 h-4 flex-shrink-0" />
-        All exported data is <strong>simulated/synthetic</strong>. A disclaimer is embedded in every export.
+      {/* ── Notice ────────────────────────────────────── */}
+      <div className="flex items-center gap-2 text-xs rounded-lg px-4 py-2.5"
+           style={{ background: 'rgba(243,232,188,0.05)', border: '1px solid rgba(243,232,188,0.12)' }}>
+        <Info className="w-4 h-4 flex-shrink-0" style={{ color: '#F3E8BC' }} />
+        <span style={{ color: 'var(--text-muted)' }}>
+          All exported data is <strong style={{ color: '#F3E8BC' }}>simulated / synthetic</strong>. A disclaimer is embedded in every export.
+        </span>
       </div>
 
-      {/* Export actions */}
-      <div className="glass-card border border-dark-600/50 p-5">
-        <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-          <FileDown className="w-4 h-4 text-cyber-500" />
+      {/* ── Export Actions ─────────────────────────────── */}
+      <div className="glass-card p-5">
+        <h2 className="text-sm font-semibold mb-5 flex items-center gap-2" style={{ color: '#F3E8BC' }}>
+          <FileDown className="w-4 h-4" />
           Export Analysis Data
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* CSV */}
-          <div className="bg-dark-800/60 rounded-xl border border-dark-600 p-4 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-green-900/30 border border-green-700/30 flex items-center justify-center flex-shrink-0">
-              <FileText className="w-6 h-6 text-green-400" />
+          {/* CSV export */}
+          <div className="rounded-xl p-4 flex items-start gap-4"
+               style={{ background: 'rgba(3,83,82,0.08)', border: '1px solid rgba(3,83,82,0.20)' }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                 style={{ background: 'rgba(3,83,82,0.20)', border: '1px solid rgba(3,83,82,0.35)' }}>
+              <FileText className="w-6 h-6" style={{ color: '#F3E8BC' }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white mb-0.5">Attack Log — CSV</p>
-              <p className="text-xs text-slate-500 mb-3">
+              <p className="text-sm font-semibold mb-0.5" style={{ color: '#F3E8BC' }}>Attack Log — CSV</p>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
                 {mockAttacks.length} records · id, timestamp, source_ip, attack_type, severity, confidence, result, method
               </p>
               <ExportButton type="csv" label="Download CSV" />
             </div>
           </div>
 
-          {/* JSON */}
-          <div className="bg-dark-800/60 rounded-xl border border-dark-600 p-4 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-900/30 border border-blue-700/30 flex items-center justify-center flex-shrink-0">
-              <FileJson className="w-6 h-6 text-blue-400" />
+          {/* JSON export */}
+          <div className="rounded-xl p-4 flex items-start gap-4"
+               style={{ background: 'rgba(3,83,82,0.08)', border: '1px solid rgba(3,83,82,0.20)' }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                 style={{ background: 'rgba(243,232,188,0.10)', border: '1px solid rgba(243,232,188,0.20)' }}>
+              <FileJson className="w-6 h-6" style={{ color: '#F3E8BC' }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white mb-0.5">Full Analysis — JSON</p>
-              <p className="text-xs text-slate-500 mb-3">
+              <p className="text-sm font-semibold mb-0.5" style={{ color: '#F3E8BC' }}>Full Analysis — JSON</p>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
                 Attacks + IP profiles + dashboard summary + metadata + disclaimer
               </p>
               <ExportButton type="json" label="Download JSON" />
@@ -79,15 +99,15 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Summary stats */}
+      {/* ── Summary Stats ─────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Attacks"         value={mockAttacks.length}     icon={ShieldAlert}    color="red" />
-        <StatCard label="Potential Successes"   value={successCount}           icon={CheckCircle2}   color="purple" />
-        <StatCard label="Critical Severity"     value={critCount}              icon={AlertTriangle}  color="orange" />
-        <StatCard label="IPs Tracked"           value={ipProfiles.length}      icon={Globe}          color="cyan" />
+        <StatCard label="Total Attacks"       value={mockAttacks.length}  icon={ShieldAlert}   color="red"    />
+        <StatCard label="Potential Successes" value={successCount}        icon={CheckCircle2}  color="orange" />
+        <StatCard label="Critical Severity"   value={critCount}           icon={AlertTriangle} color="red"    />
+        <StatCard label="IPs Tracked"         value={ipProfiles.length}   icon={Globe}         color="teal"   />
       </div>
 
-      {/* Collapsible sections */}
+      {/* ── Attack Log Preview ─────────────────────────── */}
       <Section title={`Attack Log Preview (${mockAttacks.length} records)`} defaultOpen>
         <div className="overflow-x-auto">
           <table className="data-table">
@@ -105,18 +125,19 @@ export default function Reports() {
             <tbody>
               {mockAttacks.slice(0, 10).map(atk => (
                 <tr key={atk.id}>
-                  <td className="text-xs font-mono text-slate-500">{atk.id}</td>
-                  <td className="font-mono text-xs text-slate-400 whitespace-nowrap">
+                  <td className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{atk.id}</td>
+                  <td className="font-mono text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
                     {format(parseISO(atk.timestamp), 'MM/dd HH:mm')}
                   </td>
-                  <td className="font-mono text-xs text-cyber-400 whitespace-nowrap">{atk.source_ip}</td>
-                  <td className="text-slate-300 whitespace-nowrap">{atk.attack_type}</td>
+                  <td className="font-mono text-xs whitespace-nowrap" style={{ color: '#F3E8BC' }}>{atk.source_ip}</td>
+                  <td className="whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>{atk.attack_type}</td>
                   <td><RiskBadge severity={atk.severity} /></td>
-                  <td className="font-mono text-xs text-slate-400">{(atk.confidence * 100).toFixed(0)}%</td>
+                  <td className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {(atk.confidence * 100).toFixed(0)}%
+                  </td>
                   <td>
-                    <span className={`text-xs font-mono ${
-                      atk.result === 'POTENTIAL_SUCCESS' ? 'text-red-400' : 'text-yellow-400'
-                    }`}>
+                    <span className="text-xs font-mono"
+                          style={{ color: atk.result === 'POTENTIAL_SUCCESS' ? '#f87171' : '#fbbf24' }}>
                       {atk.result === 'POTENTIAL_SUCCESS' ? '⚡ SUCCESS' : '⚠ ATTEMPT'}
                     </span>
                   </td>
@@ -124,12 +145,14 @@ export default function Reports() {
               ))}
             </tbody>
           </table>
-          <p className="text-xs text-slate-600 font-mono text-center py-3 border-t border-dark-700/50">
+          <p className="text-xs font-mono text-center py-3"
+             style={{ color: 'var(--text-muted)', borderTop: '1px solid rgba(3,83,82,0.12)' }}>
             Showing 10 of {mockAttacks.length} records — download CSV for full dataset
           </p>
         </div>
       </Section>
 
+      {/* ── IP Risk Profiles ───────────────────────────── */}
       <Section title={`IP Risk Profiles (${ipProfiles.length} IPs)`}>
         <div className="overflow-x-auto">
           <table className="data-table">
@@ -147,34 +170,37 @@ export default function Reports() {
             <tbody>
               {ipProfiles.map(ip => (
                 <tr key={ip.ip}>
-                  <td className="font-mono text-xs text-cyber-400">{ip.ip}</td>
+                  <td className="font-mono text-xs" style={{ color: '#F3E8BC' }}>{ip.ip}</td>
                   <td>
                     <div className="flex items-center gap-2">
                       <div className="progress-bar w-16">
                         <div
-                          className="progress-fill bg-red-500"
-                          style={{ width: `${ip.risk_score}%` }}
+                          className="progress-fill"
+                          style={{
+                            width: `${ip.risk_score}%`,
+                            background: ip.risk_score >= 85 ? '#f87171' : ip.risk_score >= 65 ? '#fb923c' : '#fbbf24',
+                          }}
                         />
                       </div>
-                      <span className="text-xs font-mono text-slate-400">{ip.risk_score}</span>
+                      <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{ip.risk_score}</span>
                     </div>
                   </td>
                   <td><RiskBadge severity={ip.risk_level} /></td>
-                  <td className="font-mono text-xs text-slate-400">{ip.total_requests}</td>
-                  <td className="font-mono text-xs text-slate-400">{ip.attack_count}</td>
+                  <td className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{ip.total_requests}</td>
+                  <td className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{ip.attack_count}</td>
                   <td>
                     <div className="flex flex-wrap gap-1">
                       {ip.attack_types.slice(0, 2).map(t => (
-                        <span key={t} className="text-[10px] bg-dark-700 border border-dark-600 rounded px-1.5 py-0.5 text-slate-400">
-                          {t}
-                        </span>
+                        <span key={t} className="chip text-[10px]">{t}</span>
                       ))}
                       {ip.attack_types.length > 2 && (
-                        <span className="text-[10px] text-slate-600">+{ip.attack_types.length - 2}</span>
+                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                          +{ip.attack_types.length - 2}
+                        </span>
                       )}
                     </div>
                   </td>
-                  <td className="font-mono text-xs text-slate-500 whitespace-nowrap">
+                  <td className="font-mono text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
                     {format(parseISO(ip.last_seen), 'MM/dd HH:mm')}
                   </td>
                 </tr>
@@ -184,10 +210,17 @@ export default function Reports() {
         </div>
       </Section>
 
-      {/* JSON preview */}
+      {/* ── JSON Preview ───────────────────────────────── */}
       <Section title="JSON Export Preview">
         <div className="p-5">
-          <pre className="text-xs font-mono text-slate-400 bg-dark-900 rounded-lg p-4 overflow-x-auto leading-relaxed max-h-72">
+          <pre
+            className="text-xs font-mono overflow-x-auto leading-relaxed max-h-72 p-4 rounded-xl"
+            style={{
+              background: 'rgba(3,83,82,0.06)',
+              border: '1px solid rgba(3,83,82,0.18)',
+              color: '#F3E8BC',
+            }}
+          >
 {`{
   "metadata": {
     "exported_at": "${new Date().toISOString()}",

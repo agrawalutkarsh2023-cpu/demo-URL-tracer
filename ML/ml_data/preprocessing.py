@@ -2,7 +2,7 @@
 preprocessing.py
 Data cleaning and loading utilities.
 
-DEMO PROTOTYPE — All data is synthetic.
+DEMO PROTOTYPE -- All data is synthetic.
 """
 
 import os
@@ -14,7 +14,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-# ─── Expected columns ────────────────────────────────────────────────────────────
+# --- Expected columns ------------------------------------------------------------
 REQUIRED_COLUMNS = {"source_ip", "url", "attack_type"}
 ALL_COLUMNS = [
     "timestamp", "source_ip", "destination_ip",
@@ -59,7 +59,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     -----
     1. Strip column names
     2. Drop rows missing required fields
-    3. Normalize dtypes (status_code → int, response_size → int)
+    3. Normalize dtypes (status_code -> int, response_size -> int)
     4. Fill optional text fields with safe defaults
     5. Remove duplicate rows
     6. Reset index
@@ -71,7 +71,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     Returns
     -------
-    pd.DataFrame  — cleaned copy
+    pd.DataFrame  -- cleaned copy
     """
     df = df.copy()
 
@@ -115,5 +115,5 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     # 6. Reset index
     df = df.reset_index(drop=True)
-    logger.info(f"[clean_data] Clean complete — {len(df)} rows remain")
+    logger.info(f"[clean_data] Clean complete -- {len(df)} rows remain")
     return df

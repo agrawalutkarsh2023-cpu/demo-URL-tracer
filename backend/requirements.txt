@@ -7,4 +7,8 @@ python-multipart==0.0.9
 aiofiles==23.2.1
 python-Levenshtein==0.25.1
 
-# Install with: pip install -r requirements.txt --only-binary pandas
+# ML dependencies (Random Forest pipeline)
+scikit-learn>=1.4.0
+numpy>=1.26.0
+
+# Install with: pip install -r requirements.txt --only-binary pandas,numpy

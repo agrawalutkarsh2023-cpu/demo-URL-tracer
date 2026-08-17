@@ -4,22 +4,22 @@ const CONFIG = {
   CRITICAL: {
     cls: 'badge-critical',
     Icon: AlertOctagon,
-    dot: 'bg-red-500',
+    dot: '#f87171',
   },
   HIGH: {
     cls: 'badge-high',
     Icon: AlertTriangle,
-    dot: 'bg-orange-500',
+    dot: '#fb923c',
   },
   MEDIUM: {
     cls: 'badge-medium',
     Icon: AlertCircle,
-    dot: 'bg-yellow-400',
+    dot: '#fbbf24',
   },
   LOW: {
     cls: 'badge-low',
     Icon: CheckCircle,
-    dot: 'bg-green-400',
+    dot: '#4ade80',
   },
 };
 
@@ -35,7 +35,7 @@ export default function RiskBadge({ severity, showIcon = true, dot = false }) {
   return (
     <span className={cls}>
       {dot ? (
-        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} inline-block`} />
+        <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: cfg.dot }} />
       ) : showIcon ? (
         <Icon className="w-3 h-3" />
       ) : null}

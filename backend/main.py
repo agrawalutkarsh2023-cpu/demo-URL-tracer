@@ -18,7 +18,7 @@ from database import engine, SessionLocal
 from models import Base
 from utils.seed import seed_database
 
-from api import dashboard, attacks, ips, upload, export
+from api import dashboard, attacks, ips, upload, export, ml
 
 
 # ─────────────────────────────────────────────
@@ -93,6 +93,7 @@ app.include_router(attacks.router, prefix="/api")
 app.include_router(ips.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
 app.include_router(export.router, prefix="/api")
+app.include_router(ml.router, prefix="/api")
 
 
 # ─────────────────────────────────────────────

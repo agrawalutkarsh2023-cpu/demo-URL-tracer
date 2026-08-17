@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import {
   Upload, Play, CheckCircle2, Circle, Loader2,
@@ -7,20 +7,22 @@ import {
 
 import { uploadPCAP } from '../api/apiService.js';
 import { mockPCAPResult } from '../mock/mockData.js';
+import usePageMeta from '../hooks/usePageMeta.js';
 import RiskBadge  from '../components/common/RiskBadge.jsx';
 import FileUpload from '../components/common/FileUpload.jsx';
 
-// Processing stages
+// ── Processing stages ───────────────────────────────────────
 const STAGES = [
-  { id: 'upload',    label: 'File Received',           icon: Upload },
-  { id: 'parse',     label: 'Parsing PCAP packets',    icon: FileSearch },
-  { id: 'extract',   label: 'Extracting HTTP requests',icon: Wifi },
-  { id: 'ml',        label: 'Running ML classifier',   icon: Shield },
-  { id: 'complete',  label: 'Analysis Complete',        icon: CheckCircle2 },
+  { id: 'upload',   label: 'File Received',            icon: Upload },
+  { id: 'parse',    label: 'Parsing PCAP packets',     icon: FileSearch },
+  { id: 'extract',  label: 'Extracting HTTP requests', icon: Wifi },
+  { id: 'ml',       label: 'Running ML classifier',    icon: Shield },
+  { id: 'complete', label: 'Analysis Complete',         icon: CheckCircle2 },
 ];
 
-const STAGE_DELAYS = [600, 800, 900, 1000, 400]; // ms per stage
+const STAGE_DELAYS = [600, 800, 900, 1000, 400];
 
+// ── Processing Step ─────────────────────────────────────────
 function ProcessingStep({ stage, status }) {
   const { label, icon: Icon } = stage;
   return (
@@ -34,40 +36,45 @@ function ProcessingStep({ stage, status }) {
           <Circle className="w-4 h-4" />
         )}
       </div>
-      <span className={`text-sm font-medium ${
-        status === 'done'   ? 'text-cyber-400' :
-        status === 'active' ? 'text-white' :
-        'text-slate-600'
-      }`}>
+      <span className="text-sm font-medium"
+            style={{
+              color: status === 'done' ? '#F3E8BC' : status === 'active' ? 'var(--text-primary)' : 'var(--text-muted)'
+            }}>
         {label}
       </span>
       {status === 'active' && (
-        <span className="text-xs text-slate-500 animate-pulse font-mono">processing...</span>
+        <span className="text-xs font-mono animate-pulse" style={{ color: 'var(--text-muted)' }}>
+          processing...
+        </span>
       )}
     </div>
   );
 }
 
-function ResultCard({ icon: Icon, label, value, color }) {
+// ── Result Stat Card ─────────────────────────────────────────
+function ResultCard({ icon: Icon, label, value, accentColor = '#035352' }) {
   return (
-    <div className={`glass-card border p-4 flex items-center gap-4 ${color}`}>
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-dark-800">
-        <Icon className="w-5 h-5" />
+    <div className="glass-card-hover p-4 flex items-center gap-4"
+         style={{ border: `1px solid ${accentColor}30` }}>
+      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+           style={{ background: `${accentColor}18` }}>
+        <Icon className="w-5 h-5" style={{ color: accentColor }} />
       </div>
       <div>
-        <p className="text-xs text-slate-500 uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-bold text-white font-mono">{value?.toLocaleString()}</p>
+        <p className="text-xs uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
+        <p className="text-2xl font-bold num-display" style={{ color: '#F3E8BC' }}>{value?.toLocaleString()}</p>
       </div>
     </div>
   );
 }
 
 export default function PCAPAnalysis() {
-  const [file, setFile]           = useState(null);
+  usePageMeta('PCAP Analysis', 'NetTrace Security — Upload PCAP files for automated HTTP extraction and cyberattack detection.');
+  const [file, setFile]             = useState(null);
   const [processing, setProcessing] = useState(false);
-  const [stageIdx, setStageIdx]   = useState(-1);
-  const [result, setResult]       = useState(null);
-  const [error, setError]         = useState('');
+  const [stageIdx, setStageIdx]     = useState(-1);
+  const [result, setResult]         = useState(null);
+  const [error, setError]           = useState('');
 
   const runAnalysis = async (pcapFile) => {
     setProcessing(true);
@@ -75,7 +82,6 @@ export default function PCAPAnalysis() {
     setError('');
     setStageIdx(0);
 
-    // Animate through stages
     for (let i = 0; i < STAGES.length - 1; i++) {
       setStageIdx(i);
       await new Promise(r => setTimeout(r, STAGE_DELAYS[i]));
@@ -94,7 +100,6 @@ export default function PCAPAnalysis() {
   };
 
   const loadDemo = () => {
-    // Simulate selecting a demo file
     const fake = new File(['demo'], 'demo_capture.pcap', { type: 'application/octet-stream' });
     setFile(fake);
     runAnalysis(fake);
@@ -103,17 +108,22 @@ export default function PCAPAnalysis() {
   return (
     <div className="space-y-5 animate-fade-in">
 
-      {/* Notice */}
-      <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-2.5">
-        <Info className="w-4 h-4 flex-shrink-0" />
-        Demo mode: Uploading any PCAP file triggers <strong>simulated analysis</strong> with synthetic results.
-        No real packet data is processed.
+      {/* ── Notice ────────────────────────────────────── */}
+      <div className="flex items-center gap-2 text-xs rounded-lg px-4 py-2.5"
+           style={{ background: 'rgba(243,232,188,0.05)', border: '1px solid rgba(243,232,188,0.12)' }}>
+        <Info className="w-4 h-4 flex-shrink-0" style={{ color: '#F3E8BC' }} />
+        <span style={{ color: 'var(--text-muted)' }}>
+          Demo mode: Uploading any PCAP file triggers <strong style={{ color: '#F3E8BC' }}>simulated analysis</strong> with synthetic results. No real packet data is processed.
+        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Upload panel */}
-        <div className="glass-card border border-dark-600/50 p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-white">Upload PCAP File</h2>
+        {/* ── Upload panel ──────────────────────────── */}
+        <div className="glass-card p-5 space-y-4">
+          <h2 className="text-sm font-semibold flex items-center gap-2" style={{ color: '#F3E8BC' }}>
+            <Upload className="w-4 h-4" />
+            Upload PCAP File
+          </h2>
 
           <FileUpload
             onFile={(f) => { setFile(f); }}
@@ -126,7 +136,7 @@ export default function PCAPAnalysis() {
             <button
               onClick={() => file && runAnalysis(file)}
               disabled={!file || processing}
-              className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
               {processing ? 'Analysing...' : 'Analyse PCAP'}
@@ -140,80 +150,81 @@ export default function PCAPAnalysis() {
               Load Demo
             </button>
           </div>
+
+          {/* File info */}
+          {file && (
+            <div className="rounded-xl px-4 py-3 flex items-center gap-3"
+                 style={{ background: 'rgba(3,83,82,0.10)', border: '1px solid rgba(3,83,82,0.22)' }}>
+              <FileSearch className="w-4 h-4 flex-shrink-0" style={{ color: '#F3E8BC' }} />
+              <div className="min-w-0">
+                <p className="text-xs font-medium truncate" style={{ color: '#F3E8BC' }}>{file.name}</p>
+                <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                  {file.size > 0 ? `${(file.size / 1024).toFixed(1)} KB` : 'Demo file'}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Processing stages */}
-        <div className="glass-card border border-dark-600/50 p-5">
-          <h2 className="text-sm font-semibold text-white mb-5">Processing Pipeline</h2>
-          <div className="space-y-4">
+        {/* ── Processing pipeline ───────────────────── */}
+        <div className="glass-card p-5">
+          <h2 className="text-sm font-semibold mb-6 flex items-center gap-2" style={{ color: '#F3E8BC' }}>
+            <Shield className="w-4 h-4" />
+            Processing Pipeline
+          </h2>
+          <div className="space-y-5">
             {STAGES.map((stage, i) => {
-              const status =
-                i < stageIdx  ? 'done' :
-                i === stageIdx ? 'active' :
-                'pending';
+              const status = i < stageIdx ? 'done' : i === stageIdx ? 'active' : 'pending';
               return <ProcessingStep key={stage.id} stage={stage} status={status} />;
             })}
           </div>
 
           {stageIdx === STAGES.length - 1 && !processing && result && (
-            <div className="mt-5 flex items-center gap-2 text-xs text-cyber-400 bg-cyber-900/20 border border-cyber-700/30 rounded-lg p-3">
-              <CheckCircle2 className="w-4 h-4" />
-              Analysis complete — {result.processing_time_ms}ms processing time
+            <div className="mt-5 flex items-center gap-2 text-xs rounded-lg p-3"
+                 style={{ background: 'rgba(3,83,82,0.12)', border: '1px solid rgba(3,83,82,0.30)' }}>
+              <CheckCircle2 className="w-4 h-4" style={{ color: '#F3E8BC' }} />
+              <span style={{ color: '#F3E8BC' }}>
+                Analysis complete — {result.processing_time_ms}ms processing time
+              </span>
             </div>
           )}
 
           {error && (
-            <div className="mt-5 flex items-center gap-2 text-xs text-red-400 bg-red-900/20 border border-red-700/30 rounded-lg p-3">
-              <AlertTriangle className="w-4 h-4" />
-              {error}
+            <div className="mt-5 flex items-center gap-2 text-xs rounded-lg p-3"
+                 style={{ background: 'rgba(180,30,30,0.10)', border: '1px solid rgba(180,30,30,0.25)' }}>
+              <AlertTriangle className="w-4 h-4" style={{ color: '#f87171' }} />
+              <span style={{ color: '#f87171' }}>{error}</span>
             </div>
           )}
 
           {stageIdx === -1 && (
-            <p className="text-xs text-slate-600 mt-6 font-mono text-center">
+            <p className="text-xs font-mono text-center mt-6" style={{ color: 'var(--text-muted)' }}>
               Upload a PCAP or click "Load Demo" to begin
             </p>
           )}
         </div>
       </div>
 
-      {/* Results */}
+      {/* ── Results ────────────────────────────────────── */}
       {result && (
-        <div className="space-y-4 animate-fade-in">
+        <div className="space-y-5 animate-fade-in">
           {/* Summary cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <ResultCard
-              icon={FileSearch} label="Packets Processed"
-              value={result.packets_processed}
-              color="border-cyber-700/30 stat-gradient-cyan"
-            />
-            <ResultCard
-              icon={Wifi} label="HTTP Requests"
-              value={result.http_requests_extracted}
-              color="border-blue-700/30 stat-gradient-blue"
-            />
-            <ResultCard
-              icon={Shield} label="Attacks Detected"
-              value={result.attacks_detected}
-              color="border-red-700/30 stat-gradient-red"
-            />
-            <ResultCard
-              icon={Globe} label="High-Risk IPs"
-              value={result.high_risk_ips}
-              color="border-orange-700/30 stat-gradient-orange"
-            />
+            <ResultCard icon={FileSearch} label="Packets Processed" value={result.packets_processed} accentColor="#035352" />
+            <ResultCard icon={Wifi}       label="HTTP Requests"     value={result.http_requests_extracted} accentColor="#04817f" />
+            <ResultCard icon={Shield}     label="Attacks Detected"  value={result.attacks_detected} accentColor="#f87171" />
+            <ResultCard icon={Globe}      label="High-Risk IPs"     value={result.high_risk_ips} accentColor="#fb923c" />
           </div>
 
           {/* Detected attacks table */}
-          <div className="glass-card border border-dark-600/50 overflow-hidden">
-            <div className="px-5 py-4 border-b border-dark-700/50 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white">
+          <div className="glass-card overflow-hidden">
+            <div className="section-header">
+              <h3 className="section-title flex items-center gap-2">
+                <Shield className="w-4 h-4" style={{ color: '#F3E8BC' }} />
                 Detected Attacks
-                <span className="ml-2 text-xs text-slate-500 font-mono">({result.attacks.length})</span>
+                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>({result.attacks.length})</span>
               </h3>
-              <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 rounded px-2 py-0.5">
-                SIMULATED RESULTS
-              </span>
+              <span className="chip" style={{ color: '#F3E8BC', borderColor: 'rgba(243,232,188,0.2)' }}>SIMULATED</span>
             </div>
             <div className="overflow-x-auto">
               <table className="data-table">
@@ -230,21 +241,22 @@ export default function PCAPAnalysis() {
                 <tbody>
                   {result.attacks.slice(0, 15).map(atk => (
                     <tr key={atk.id}>
-                      <td className="font-mono text-xs text-slate-400 whitespace-nowrap">
+                      <td className="font-mono text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
                         {format(parseISO(atk.timestamp), 'MM/dd HH:mm:ss')}
                       </td>
-                      <td className="font-mono text-xs text-cyber-400 whitespace-nowrap">{atk.source_ip}</td>
-                      <td className="text-slate-300">{atk.attack_type}</td>
+                      <td className="font-mono text-xs whitespace-nowrap" style={{ color: '#F3E8BC' }}>
+                        {atk.source_ip}
+                      </td>
+                      <td style={{ color: 'var(--text-primary)' }}>{atk.attack_type}</td>
                       <td><RiskBadge severity={atk.severity} /></td>
                       <td>
-                        <span className="text-xs font-mono text-slate-400">
+                        <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
                           {(atk.confidence * 100).toFixed(0)}%
                         </span>
                       </td>
                       <td>
-                        <span className={`text-xs font-mono font-semibold ${
-                          atk.result === 'POTENTIAL_SUCCESS' ? 'text-red-400' : 'text-yellow-400'
-                        }`}>
+                        <span className="text-xs font-mono font-semibold"
+                              style={{ color: atk.result === 'POTENTIAL_SUCCESS' ? '#f87171' : '#fbbf24' }}>
                           {atk.result === 'POTENTIAL_SUCCESS' ? '⚡ SUCCESS' : '⚠ ATTEMPT'}
                         </span>
                       </td>

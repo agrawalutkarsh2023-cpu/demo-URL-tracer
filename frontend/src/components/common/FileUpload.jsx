@@ -42,7 +42,11 @@ export default function FileUpload({ onFile, accept = '.pcap,.cap', label = 'Upl
   return (
     <div>
       <div
-        className={`upload-zone ${dragOver ? 'drag-over' : ''} ${selected ? 'border-cyber-600/60 bg-cyber-900/10' : ''}`}
+        className={`upload-zone ${dragOver ? 'drag-over' : ''}`}
+        style={selected ? {
+          borderColor: 'rgba(3,83,82,0.55)',
+          background: 'rgba(3,83,82,0.10)',
+        } : undefined}
         onClick={() => !selected && inputRef.current?.click()}
         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
@@ -58,13 +62,16 @@ export default function FileUpload({ onFile, accept = '.pcap,.cap', label = 'Upl
 
         {selected ? (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-xl bg-cyber-900/40 border border-cyber-600/40 flex items-center justify-center">
-              <File className="w-7 h-7 text-cyber-400" />
+            <div
+              className="w-14 h-14 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(3,83,82,0.20)', border: '1px solid rgba(3,83,82,0.40)' }}
+            >
+              <File className="w-7 h-7" style={{ color: '#F3E8BC' }} />
             </div>
             <div className="text-center">
-              <p className="text-sm font-semibold text-white">{selected.name}</p>
-              <p className="text-xs text-slate-500 mt-1">
-                {(selected.size / 1024).toFixed(1)} KB
+              <p className="text-sm font-semibold" style={{ color: '#F3E8BC' }}>{selected.name}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                {selected.size > 0 ? `${(selected.size / 1024).toFixed(1)} KB` : 'Demo file'}
               </p>
             </div>
             <button onClick={clear} className="btn-secondary text-xs gap-1.5 px-3 py-1.5">
@@ -74,23 +81,29 @@ export default function FileUpload({ onFile, accept = '.pcap,.cap', label = 'Upl
           </div>
         ) : (
           <>
-            <div className="w-14 h-14 rounded-xl bg-dark-700 border border-dark-600 flex items-center justify-center">
-              <Upload className="w-7 h-7 text-slate-500" />
+            <div
+              className="w-14 h-14 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(3,83,82,0.10)', border: '1px solid rgba(3,83,82,0.25)' }}
+            >
+              <Upload className="w-7 h-7" style={{ color: 'var(--text-muted)' }} />
             </div>
             <div className="text-center">
-              <p className="text-base font-semibold text-slate-300">{label}</p>
-              <p className="text-sm text-slate-500 mt-1">
-                Drag &amp; drop or <span className="text-cyber-400 underline underline-offset-2">browse</span>
+              <p className="text-base font-semibold" style={{ color: 'var(--text-secondary)' }}>{label}</p>
+              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+                Drag &amp; drop or{' '}
+                <span style={{ color: '#F3E8BC', textDecoration: 'underline', textUnderlineOffset: 2 }}>
+                  browse
+                </span>
               </p>
-              {hint && <p className="text-xs text-slate-600 mt-2">{hint}</p>}
-              <p className="text-xs text-slate-600 mt-1">Accepted: {accept}</p>
+              {hint && <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>{hint}</p>}
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Accepted: {accept}</p>
             </div>
           </>
         )}
       </div>
 
       {error && (
-        <div className="mt-2 flex items-center gap-2 text-xs text-red-400">
+        <div className="mt-2 flex items-center gap-2 text-xs" style={{ color: '#f87171' }}>
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           {error}
         </div>

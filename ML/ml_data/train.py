@@ -6,15 +6,17 @@ Run:
     python ml_data/train.py
 
 Pipeline:
-    Generate (if needed) → Load → Clean → Extract Features →
-    Train/Test Split → Train RF → Evaluate → Save
+    Generate (if needed) -> Load -> Clean -> Extract Features ->
+    Train/Test Split -> Train RF -> Evaluate -> Save
 
-DEMO PROTOTYPE — synthetic data only.
+DEMO PROTOTYPE -- synthetic data only.
 """
 
 import os
 import sys
+import json
 import logging
+from datetime import datetime
 
 logging.basicConfig(
     level=logging.INFO,
@@ -48,21 +50,21 @@ def run_training_pipeline(force_regenerate: bool = False) -> dict:
 
     Returns
     -------
-    dict — evaluation metrics from the held-out test set
+    dict -- evaluation metrics from the held-out test set
     """
     print("\n" + "=" * 60)
-    print("  URL-Based Attack Detection — ML Training Pipeline")
+    print("  URL-Based Attack Detection -- ML Training Pipeline")
     print("  DEMO PROTOTYPE  |  Synthetic data only")
     print("=" * 60)
 
-    # ── Step 1: Dataset ──────────────────────────────────────────────────────────
+    # -- Step 1: Dataset ----------------------------------------------------------
     if force_regenerate or not os.path.exists(OUTPUT_FILE):
         print("\n[1/5] Generating synthetic dataset...")
         generate_dataset()
     else:
-        print(f"\n[1/5] Dataset already exists → {OUTPUT_FILE}")
+        print(f"\n[1/5] Dataset already exists -> {OUTPUT_FILE}")
 
-    # ── Step 2: Load & Clean ──────────────────────────────────────────────────────
+    # -- Step 2: Load & Clean ------------------------------------------------------
     print("\n[2/5] Loading and cleaning data...")
     df_raw = load_dataset(OUTPUT_FILE)
     df = clean_data(df_raw)
@@ -71,28 +73,28 @@ def run_training_pipeline(force_regenerate: bool = False) -> dict:
     label_counts = df["attack_type"].value_counts()
     print("\n      Label distribution:")
     for label, count in label_counts.items():
-        bar = "█" * (count // 5)
+        bar = "#" * (count // 5)
         print(f"        {label:<30} {count:>4}  {bar}")
 
-    # ── Step 3: Feature Extraction ───────────────────────────────────────────────
+    # -- Step 3: Feature Extraction -----------------------------------------------
     print(f"\n[3/5] Extracting {len(FEATURE_NAMES)} features...")
     X = extract_features(df)
     y = df["attack_type"]
     print(f"      Feature matrix shape: {X.shape}")
     print(f"      Features: {', '.join(FEATURE_NAMES)}")
 
-    # ── Step 4: Train / Test Split ───────────────────────────────────────────────
-    print("\n[4/5] Splitting → 80% train / 20% test (stratified)...")
+    # -- Step 4: Train / Test Split -----------------------------------------------
+    print("\n[4/5] Splitting -> 80% train / 20% test (stratified)...")
     X_train, X_test, y_train, y_test = prepare_train_test(X, y)
     print(f"      Train: {len(X_train)} samples  |  Test: {len(X_test)} samples")
 
-    # ── Step 5: Train ────────────────────────────────────────────────────────────
+    # -- Step 5: Train ------------------------------------------------------------
     print("\n[5/5] Training Random Forest (n_estimators=150)...")
     model, le = train_model(X_train, y_train)
     print(f"      Classes: {list(le.classes_)}")
 
-    # ── Evaluation ───────────────────────────────────────────────────────────────
-    print("\n── Evaluation (test set) ──────────────────────────────")
+    # -- Evaluation ---------------------------------------------------------------
+    print("\n-- Evaluation (test set) ------------------------------")
     metrics = evaluate_model(model, le, X_test, y_test)
 
     print(f"  Accuracy  : {metrics['accuracy']:.4f}  ({metrics['accuracy']*100:.1f}%)")
@@ -102,16 +104,40 @@ def run_training_pipeline(force_regenerate: bool = False) -> dict:
     print(f"\n  Per-class report:\n")
     print(metrics["classification_report"])
 
-    # ── Save ─────────────────────────────────────────────────────────────────────
+    # -- Save ---------------------------------------------------------------------
     save_model(model, le)
-    print("\n✓ Model saved to ml_data/models/rf_model.pkl")
-    print("✓ LabelEncoder saved to ml_data/models/label_encoder.pkl")
+    print("\n[OK] Model saved to ml_data/models/rf_model.pkl")
+    print("[OK] LabelEncoder saved to ml_data/models/label_encoder.pkl")
 
-    # ── Feature importances ──────────────────────────────────────────────────────
+    # -- Persist metrics to JSON for /api/ml/metrics endpoint ---------------------
+    metrics_path = os.path.join(os.path.dirname(__file__), "models", "metrics.json")
+    metrics_export = {
+        "accuracy":              metrics["accuracy"],
+        "precision":             metrics["precision"],
+        "recall":                metrics["recall"],
+        "f1":                    metrics["f1"],
+        "n_test_samples":        metrics["n_test_samples"],
+        "classes":               metrics["classes"],
+        "confusion_matrix":      metrics["confusion_matrix"],
+        "classification_report": metrics["classification_report"],
+        "note":                  metrics["note"],
+        "trained_at":            datetime.utcnow().isoformat() + "Z",
+        "model_type":            "RandomForestClassifier",
+        "n_estimators":          150,
+        "features":              FEATURE_NAMES,
+        "train_size":            len(X_train),
+        "test_size":             len(X_test),
+        "disclaimer":            "Prototype metrics -- evaluated on synthetic data only.",
+    }
+    with open(metrics_path, "w") as f:
+        json.dump(metrics_export, f, indent=2)
+    print("[OK] Metrics saved to ml_data/models/metrics.json")
+
+    # -- Feature importances ------------------------------------------------------
     importances = model.feature_importances_
-    print("\n── Feature Importances ───────────────────────────────")
+    print("\n-- Feature Importances -------------------------------")
     for name, imp in sorted(zip(FEATURE_NAMES, importances), key=lambda x: -x[1]):
-        bar = "█" * int(imp * 60)
+        bar = "#" * int(imp * 60)
         print(f"  {name:<30} {imp:.4f}  {bar}")
 
     print("\n" + "=" * 60)

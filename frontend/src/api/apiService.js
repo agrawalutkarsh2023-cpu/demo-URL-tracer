@@ -181,3 +181,91 @@ export async function exportJSON() {
   }
   return request('/export/json');
 }
+
+// ─── ML Intelligence ───────────────────────────────────────────────────────────
+/**
+ * GET /api/ml/status
+ * Returns ML model availability and metadata.
+ */
+export async function getMLStatus() {
+  if (USE_MOCK) {
+    await delay(300);
+    return {
+      ml_available: true,
+      model_type: 'RandomForest',
+      n_estimators: 150,
+      n_classes: 14,
+      n_features: 13,
+      confidence_threshold: 0.55,
+      classes: [
+        'Brute Force','Command Injection','Credential Stuffing',
+        'Directory Traversal','HTTP Parameter Pollution','LFI/RFI',
+        'Normal','SQL Injection','SSRF','Typosquatting',
+        'Web Shell Upload','XSS','XXE','Benign'
+      ],
+      label: 'Prototype Prediction',
+      disclaimer: 'Demo prototype trained on synthetic data only.',
+    };
+  }
+  return request('/ml/status');
+}
+
+/**
+ * POST /api/ml/predict
+ * Run a single HTTP request through the RF classifier.
+ */
+export async function predictML(requestData) {
+  if (USE_MOCK) {
+    await delay(400);
+    const url = (requestData.url || '').toLowerCase();
+    if (url.includes('union') || url.includes('select'))
+      return { prediction: 'SQL Injection', confidence: 0.94, label: 'Prototype Prediction', model: 'RandomForest', ml_available: true };
+    if (url.includes('<script') || url.includes('onerror'))
+      return { prediction: 'XSS', confidence: 0.91, label: 'Prototype Prediction', model: 'RandomForest', ml_available: true };
+    if (url.includes('../') || url.includes('passwd'))
+      return { prediction: 'Directory Traversal', confidence: 0.88, label: 'Prototype Prediction', model: 'RandomForest', ml_available: true };
+    if (url.includes('cmd=') || url.includes('whoami'))
+      return { prediction: 'Command Injection', confidence: 0.96, label: 'Prototype Prediction', model: 'RandomForest', ml_available: true };
+    return { prediction: 'Normal', confidence: 0.82, label: 'Prototype Prediction', model: 'RandomForest', ml_available: true };
+  }
+  return request('/ml/predict', {
+    method: 'POST',
+    body: JSON.stringify(requestData),
+  });
+}
+
+/**
+ * GET /api/ml/metrics
+ * Returns evaluation metrics from the last training run.
+ */
+export async function getMLMetrics() {
+  if (USE_MOCK) {
+    await delay(350);
+    return {
+      accuracy: 0.9261,
+      precision: 0.9318,
+      recall: 0.9261,
+      f1: 0.9274,
+      n_test_samples: 222,
+      train_size: 888,
+      test_size: 222,
+      model_type: 'RandomForestClassifier',
+      n_estimators: 150,
+      trained_at: new Date(Date.now() - 3600000).toISOString(),
+      classes: [
+        'Brute Force','Command Injection','Credential Stuffing',
+        'Directory Traversal','HTTP Parameter Pollution','LFI/RFI',
+        'Normal','SQL Injection','SSRF','Typosquatting',
+        'Web Shell Upload','XSS','XXE'
+      ],
+      features: [
+        'url_length','param_count','special_char_count','encoding_count',
+        'path_depth','suspicious_keyword_count','http_method_encoded',
+        'status_code','response_size','has_dot_dot','has_base64','is_post','query_length'
+      ],
+      disclaimer: 'Prototype metrics — evaluated on synthetic data only.',
+      note: 'Prototype metrics — synthetic data only',
+    };
+  }
+  return request('/ml/metrics');
+}

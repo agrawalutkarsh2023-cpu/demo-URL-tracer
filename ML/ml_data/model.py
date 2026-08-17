@@ -2,7 +2,7 @@
 model.py
 Random Forest model: training, evaluation, save/load.
 
-DEMO PROTOTYPE — scikit-learn RandomForestClassifier only.
+DEMO PROTOTYPE -- scikit-learn RandomForestClassifier only.
 No deep learning. No artificial metric inflation.
 
 All metrics are computed from actual test-set predictions.
@@ -33,7 +33,7 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 MODEL_PATH = os.path.join(MODEL_DIR, "rf_model.pkl")
 ENCODER_PATH = os.path.join(MODEL_DIR, "label_encoder.pkl")
 
-# ─── Model definition ────────────────────────────────────────────────────────────
+# --- Model definition ------------------------------------------------------------
 
 def build_model() -> RandomForestClassifier:
     """
@@ -41,7 +41,7 @@ def build_model() -> RandomForestClassifier:
     Hyperparameters chosen for demo-scale data (~1,100 records).
     """
     return RandomForestClassifier(
-        n_estimators=150,       # 150 trees — good balance for ~1K records
+        n_estimators=150,       # 150 trees -- good balance for ~1K records
         max_depth=None,         # Grow full trees
         min_samples_split=2,
         min_samples_leaf=1,
@@ -52,7 +52,7 @@ def build_model() -> RandomForestClassifier:
     )
 
 
-# ─── Training ────────────────────────────────────────────────────────────────────
+# --- Training --------------------------------------------------------------------
 
 def train_model(
     X: pd.DataFrame,
@@ -63,8 +63,8 @@ def train_model(
 
     Parameters
     ----------
-    X : pd.DataFrame  — feature matrix (output of features.extract_features)
-    y : pd.Series     — string labels (attack_type column)
+    X : pd.DataFrame  -- feature matrix (output of features.extract_features)
+    y : pd.Series     -- string labels (attack_type column)
 
     Returns
     -------
@@ -83,7 +83,7 @@ def train_model(
     return model, le
 
 
-# ─── Evaluation ──────────────────────────────────────────────────────────────────
+# --- Evaluation ------------------------------------------------------------------
 
 def evaluate_model(
     model: RandomForestClassifier,
@@ -93,14 +93,14 @@ def evaluate_model(
 ) -> dict:
     """
     Evaluate the trained model on the held-out test set.
-    Returns actual measured metrics — no invented numbers.
+    Returns actual measured metrics -- no invented numbers.
 
     Parameters
     ----------
     model   : trained RandomForestClassifier
     le      : fitted LabelEncoder (same one used during training)
-    X_test  : pd.DataFrame — test feature matrix
-    y_test  : pd.Series    — true string labels
+    X_test  : pd.DataFrame -- test feature matrix
+    y_test  : pd.Series    -- true string labels
 
     Returns
     -------
@@ -133,7 +133,7 @@ def evaluate_model(
         "classification_report":  report,
         "classes":                list(le.classes_),
         "n_test_samples":         len(y_test),
-        "note":                   "Prototype metrics — synthetic data only",
+        "note":                   "Prototype metrics -- synthetic data only",
     }
 
     logger.info(
@@ -143,7 +143,7 @@ def evaluate_model(
     return metrics
 
 
-# ─── Persistence ─────────────────────────────────────────────────────────────────
+# --- Persistence -----------------------------------------------------------------
 
 def save_model(
     model: RandomForestClassifier,
@@ -157,8 +157,8 @@ def save_model(
         pickle.dump(model, f)
     with open(encoder_path, "wb") as f:
         pickle.dump(le, f)
-    logger.info(f"[save_model] Model → {model_path}")
-    logger.info(f"[save_model] LabelEncoder → {encoder_path}")
+    logger.info(f"[save_model] Model -> {model_path}")
+    logger.info(f"[save_model] LabelEncoder -> {encoder_path}")
 
 
 def load_model(
@@ -185,7 +185,7 @@ def load_model(
     return model, le
 
 
-# ─── Full pipeline helper ─────────────────────────────────────────────────────────
+# --- Full pipeline helper ---------------------------------------------------------
 
 def prepare_train_test(
     X: pd.DataFrame,

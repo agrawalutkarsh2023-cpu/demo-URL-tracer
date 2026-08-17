@@ -9,7 +9,7 @@ Detects:
 
 Also provides get_ip_features() for backend IP intelligence enrichment.
 
-DEMO PROTOTYPE — all analysis is on synthetic data only.
+DEMO PROTOTYPE -- all analysis is on synthetic data only.
 """
 
 import logging
@@ -21,7 +21,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-# ─── Thresholds ──────────────────────────────────────────────────────────────────
+# --- Thresholds ------------------------------------------------------------------
 BRUTE_FORCE_FAILED_THRESHOLD = 5       # failed login attempts in window
 BRUTE_FORCE_WINDOW_SECONDS   = 60      # time window for brute force check
 CRED_STUFFING_USERNAME_THRESHOLD = 3   # distinct usernames from one IP
@@ -37,7 +37,7 @@ USERNAME_RE = re.compile(
 )
 
 
-# ─── Helpers ─────────────────────────────────────────────────────────────────────
+# --- Helpers ---------------------------------------------------------------------
 
 def _parse_ts(ts_str: str) -> Optional[datetime]:
     """Parse ISO timestamp string; return None on failure."""
@@ -56,7 +56,7 @@ def _get_ip_rows(df: pd.DataFrame, ip: str) -> pd.DataFrame:
     return df[df["source_ip"] == ip].copy()
 
 
-# ─── Behavioral detectors ────────────────────────────────────────────────────────
+# --- Behavioral detectors --------------------------------------------------------
 
 def _check_brute_force(ip_df: pd.DataFrame) -> dict | None:
     """
@@ -146,7 +146,7 @@ def _check_high_request_rate(ip_df: pd.DataFrame) -> dict | None:
     return None
 
 
-# ─── Public API ───────────────────────────────────────────────────────────────────
+# --- Public API -------------------------------------------------------------------
 
 def analyze_behavior(df: pd.DataFrame, ip: str) -> list[dict]:
     """
@@ -154,8 +154,8 @@ def analyze_behavior(df: pd.DataFrame, ip: str) -> list[dict]:
 
     Parameters
     ----------
-    df  : pd.DataFrame — the full (cleaned) traffic DataFrame
-    ip  : str          — source IP to analyze
+    df  : pd.DataFrame -- the full (cleaned) traffic DataFrame
+    ip  : str          -- source IP to analyze
 
     Returns
     -------
@@ -185,7 +185,7 @@ def get_ip_features(df: pd.DataFrame, ip: str) -> dict:
 
     Parameters
     ----------
-    df : pd.DataFrame — full cleaned traffic DataFrame
+    df : pd.DataFrame -- full cleaned traffic DataFrame
     ip : str
 
     Returns

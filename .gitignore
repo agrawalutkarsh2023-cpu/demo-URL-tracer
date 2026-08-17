@@ -14,6 +14,8 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 *.pyo
+*.egg-info/
+.eggs/
 
 # Virtual environments
 venv/
@@ -22,14 +24,42 @@ env/
 
 # Databases / local data
 *.db
+*.sqlite
+*.sqlite3
 
 # PCAP files
 *.pcap
 *.pcapng
+*.cap
+
+# ML model artifacts
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.pt
+*.pth
+ML/ml_data/*.csv
+ML/ml_data/*.json
+
+# Uploaded / temp files
+backend/uploads/
+backend/tmp/
+*.tmp
+*.temp
+
+# Logs
+*.log
+logs/
 
 # IDE
 .vscode/
+.idea/
+*.swp
 
 # OS
 .DS_Store
 Thumbs.db
+# Generated ML data and trained models
+ML/ml_data/data/
+ML/ml_data/models/

@@ -6,23 +6,18 @@ const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   const d = payload[0];
   return (
-    <div className="bg-dark-800 border border-dark-600 rounded-lg px-3 py-2 shadow-2xl">
-      <p className="text-xs font-semibold" style={{ color: d.payload.fill }}>
-        {d.name}: <span className="text-white">{d.value}</span>
+    <div style={{
+      background: 'rgba(3, 12, 12, 0.95)',
+      border: '1px solid rgba(3,83,82,0.35)',
+      borderRadius: 10,
+      padding: '10px 14px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+    }}>
+      <p style={{ color: d.payload.fill, fontSize: 12, fontWeight: 600 }}>
+        {d.name}:{' '}
+        <span style={{ color: '#F3E8BC', fontWeight: 700 }}>{d.value}</span>
       </p>
     </div>
-  );
-};
-
-const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, name }) => {
-  const RADIAN = Math.PI / 180;
-  const r = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + r * Math.cos(-midAngle * RADIAN);
-  const y = cy + r * Math.sin(-midAngle * RADIAN);
-  return (
-    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={600}>
-      {value}
-    </text>
   );
 };
 
@@ -40,12 +35,13 @@ export default function SeverityChart({ data, height = 260 }) {
           data={data}
           cx="50%"
           cy="48%"
-          innerRadius={65}
-          outerRadius={95}
-          paddingAngle={3}
+          innerRadius={62}
+          outerRadius={90}
+          paddingAngle={4}
           dataKey="value"
           labelLine={false}
-          label={renderLabel}
+          stroke="transparent"
+          strokeWidth={0}
         >
           {data.map((entry, i) => (
             <Cell key={i} fill={entry.fill} stroke="transparent" />
@@ -54,19 +50,24 @@ export default function SeverityChart({ data, height = 260 }) {
         <Tooltip content={<CustomTooltip />} />
         <Legend
           iconType="circle"
-          iconSize={8}
-          formatter={(val) => <span style={{ color: '#94a3b8', fontSize: 12 }}>{val}</span>}
+          iconSize={7}
+          formatter={(val) => (
+            <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{val}</span>
+          )}
         />
-        {/* Centre label */}
+        {/* Centre labels */}
         <text
-          x="50%" y="46%" textAnchor="middle" dominantBaseline="middle"
-          fill="#fff" fontSize={22} fontWeight={700}
+          x="50%" y="44%"
+          textAnchor="middle" dominantBaseline="middle"
+          fill="#F3E8BC" fontSize={24} fontWeight={700}
+          fontFamily="JetBrains Mono, monospace"
         >
           {total}
         </text>
         <text
-          x="50%" y="54%" textAnchor="middle" dominantBaseline="middle"
-          fill="#64748b" fontSize={11}
+          x="50%" y="53%"
+          textAnchor="middle" dominantBaseline="middle"
+          fill="var(--text-muted)" fontSize={11}
         >
           Total
         </text>
