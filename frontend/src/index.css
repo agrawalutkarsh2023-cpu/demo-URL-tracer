@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Reset ──────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  @apply bg-dark-950 text-slate-100 font-sans antialiased;
+  min-height: 100vh;
+}
+
+/* ─── Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { @apply bg-dark-900; }
+::-webkit-scrollbar-thumb { @apply bg-dark-400 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-cyber-600; }
+
+/* ─── Selection ───────────────────────────────────── */
+::selection { @apply bg-cyber-700 text-white; }
+
+/* ─── Glass Card ──────────────────────────────────── */
+.glass-card {
+  @apply bg-dark-800/60 backdrop-blur-md border border-dark-600/50 rounded-xl;
+}
+
+.glass-card-hover {
+  @apply glass-card transition-all duration-200 hover:border-cyber-700/60 hover:bg-dark-700/60 hover:shadow-lg hover:shadow-cyber-900/20;
+}
+
+/* ─── Glow ────────────────────────────────────────── */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 204, 143, 0.15);
+}
+
+.glow-cyan-strong {
+  box-shadow: 0 0 30px rgba(0, 204, 143, 0.35), 0 0 60px rgba(0, 204, 143, 0.1);
+}
+
+.glow-red {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+}
+
+/* ─── Severity Badge Base ─────────────────────────── */
+.badge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold font-mono tracking-wide;
+}
+
+.badge-critical {
+  @apply badge bg-red-500/20 text-red-400 border border-red-500/30;
+}
+
+.badge-high {
+  @apply badge bg-orange-500/20 text-orange-400 border border-orange-500/30;
+}
+
+.badge-medium {
+  @apply badge bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
+}
+
+.badge-low {
+  @apply badge bg-green-500/20 text-green-400 border border-green-500/30;
+}
+
+.badge-info {
+  @apply badge bg-blue-500/20 text-blue-400 border border-blue-500/30;
+}
+
+/* ─── Table ───────────────────────────────────────── */
+.data-table {
+  @apply w-full text-sm;
+}
+
+.data-table thead tr {
+  @apply border-b border-dark-600/50;
+}
+
+.data-table thead th {
+  @apply px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-widest;
+}
+
+.data-table tbody tr {
+  @apply border-b border-dark-700/40 transition-colors duration-150 cursor-pointer;
+}
+
+.data-table tbody tr:hover {
+  @apply bg-cyber-900/20;
+}
+
+.data-table tbody td {
+  @apply px-4 py-3 text-slate-300;
+}
+
+/* ─── Input ───────────────────────────────────────── */
+.cyber-input {
+  @apply w-full bg-dark-800 border border-dark-600 rounded-lg px-4 py-2.5
+         text-slate-200 placeholder-slate-500 text-sm
+         focus:outline-none focus:border-cyber-600 focus:ring-1 focus:ring-cyber-600/40
+         transition-all duration-200;
+}
+
+.cyber-select {
+  @apply cyber-input appearance-none cursor-pointer;
+}
+
+/* ─── Button ──────────────────────────────────────── */
+.btn-primary {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
+         bg-cyber-600 hover:bg-cyber-500 text-white
+         transition-all duration-200 active:scale-95
+         focus:outline-none focus:ring-2 focus:ring-cyber-500/50;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
+         bg-dark-700 hover:bg-dark-600 text-slate-200 border border-dark-500
+         transition-all duration-200 active:scale-95
+         focus:outline-none focus:ring-2 focus:ring-dark-400/50;
+}
+
+.btn-danger {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
+         bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/30
+         transition-all duration-200 active:scale-95;
+}
+
+/* ─── Demo Banner ─────────────────────────────────── */
+.demo-banner {
+  @apply flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold
+         bg-amber-500/10 text-amber-400 border border-amber-500/25 tracking-wide;
+}
+
+/* ─── Stat Card Gradient ──────────────────────────── */
+.stat-gradient-cyan {
+  background: linear-gradient(135deg, rgba(0,204,143,0.08) 0%, rgba(0,204,143,0.02) 100%);
+}
+.stat-gradient-red {
+  background: linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(239,68,68,0.02) 100%);
+}
+.stat-gradient-orange {
+  background: linear-gradient(135deg, rgba(249,115,22,0.10) 0%, rgba(249,115,22,0.02) 100%);
+}
+.stat-gradient-blue {
+  background: linear-gradient(135deg, rgba(59,130,246,0.10) 0%, rgba(59,130,246,0.02) 100%);
+}
+.stat-gradient-purple {
+  background: linear-gradient(135deg, rgba(168,85,247,0.10) 0%, rgba(168,85,247,0.02) 100%);
+}
+
+/* ─── Progress Bar ────────────────────────────────── */
+.progress-bar {
+  @apply h-1.5 rounded-full bg-dark-700 overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full rounded-full transition-all duration-500;
+}
+
+/* ─── Sidebar Active Link ─────────────────────────── */
+.nav-link {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400
+         transition-all duration-150 hover:bg-dark-700/70 hover:text-slate-200;
+}
+
+.nav-link.active {
+  @apply bg-cyber-900/40 text-cyber-400 border-l-2 border-cyber-500;
+}
+
+/* ─── Animations ──────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmerBg {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in { animation: fadeIn 0.35s ease-out both; }
+.animate-slide-in { animation: slideInLeft 0.3s ease-out both; }
+
+.skeleton {
+  background: linear-gradient(90deg, #1a2340 25%, #253050 50%, #1a2340 75%);
+  background-size: 200% 100%;
+  animation: shimmerBg 1.6s infinite;
+  @apply rounded;
+}
+
+/* ─── Risk Score Arc ──────────────────────────────── */
+.risk-arc-critical { @apply text-red-500; }
+.risk-arc-high     { @apply text-orange-500; }
+.risk-arc-medium   { @apply text-yellow-400; }
+.risk-arc-low      { @apply text-green-400; }
+
+/* ─── Chart Tooltip ───────────────────────────────── */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  @apply !bg-dark-800 !border-dark-600 !rounded-lg !text-sm !shadow-2xl;
+}
+
+/* ─── Upload Zone ─────────────────────────────────── */
+.upload-zone {
+  @apply border-2 border-dashed border-dark-500 rounded-xl p-12
+         flex flex-col items-center justify-center text-center gap-4
+         transition-all duration-200 cursor-pointer
+         hover:border-cyber-600/60 hover:bg-cyber-900/10;
+}
+
+.upload-zone.drag-over {
+  @apply border-cyber-500 bg-cyber-900/20;
+}
+
+/* ─── Timeline dot ────────────────────────────────── */
+.timeline-dot {
+  @apply w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1;
+}
+
+/* ─── Stepper ─────────────────────────────────────── */
+.step-item {
+  @apply flex items-start gap-4 relative;
+}
+
+.step-icon {
+  @apply w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold z-10;
+}
+
+.step-icon.done      { @apply bg-cyber-600 text-white; }
+.step-icon.active    { @apply bg-dark-700 border-2 border-cyber-500 text-cyber-400; }
+.step-icon.pending   { @apply bg-dark-800 border border-dark-500 text-dark-400; }

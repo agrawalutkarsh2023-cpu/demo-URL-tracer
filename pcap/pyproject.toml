@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pcap-processor"
+version = "1.0.0"
+description = "PCAP processing module for URL-based cyber attack detection (demo)"
+requires-python = ">=3.9"
+dependencies = ["scapy"]
+
+[tool.setuptools.packages.find]
+# The 'pcap' package is the root of this directory (now named pcap/)
+# Setuptools will auto-discover it
+where = [".."]
+include = ["pcap*"]
+
