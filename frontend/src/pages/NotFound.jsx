@@ -3,7 +3,7 @@ import { Home, ShieldAlert, Globe, FileSearch, Brain, FileBarChart2, Shield, Mai
 import usePageMeta from '../hooks/usePageMeta';
 
 export default function NotFound() {
-  usePageMeta('404 — Page Not Found', 'The page you are looking for does not exist. Return to NetTrace Security dashboard.');
+  usePageMeta('404 — Page Not Found', 'The page you are looking for does not exist. Return to URL Tracer Security dashboard.');
 
   return (
     <div
@@ -44,7 +44,7 @@ export default function NotFound() {
           The route you're looking for doesn't exist in this system.
         </p>
         <p className="text-xs font-mono mb-10" style={{ color: 'var(--text-muted)' }}>
-          ERROR_CODE: 404 · ROUTE_NOT_REGISTERED · NETTRACE_SECURITY
+          ERROR_CODE: 404 · ROUTE_NOT_REGISTERED · URL_TRACER_SECURITY
         </p>
 
         {/* Primary CTA */}

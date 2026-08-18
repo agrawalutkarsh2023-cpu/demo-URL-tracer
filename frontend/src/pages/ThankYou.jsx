@@ -8,7 +8,7 @@ const REDIRECT_AFTER = 10;
 export default function ThankYou() {
   usePageMeta(
     'Thank You — Enquiry Received',
-    'Your enquiry has been received. The NetTrace Security team will get back to you shortly.'
+    'Your enquiry has been received. The URL Tracer Security team will get back to you shortly.'
   );
 
   const navigate = useNavigate();

@@ -79,7 +79,7 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 export default function IPIntelligence() {
-  usePageMeta('IP Intelligence', 'NetTrace Security — Investigate IP risk profiles, attack history, and threat patterns.');
+  usePageMeta('IP Intelligence', 'URL Tracer Security — Investigate IP risk profiles, attack history, and threat patterns.');
   const [query, setQuery]     = useState('');
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);

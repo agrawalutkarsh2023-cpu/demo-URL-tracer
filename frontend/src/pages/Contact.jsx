@@ -6,7 +6,7 @@ import usePageMeta from '../hooks/usePageMeta';
 export default function Contact() {
   usePageMeta(
     'Contact Us',
-    'Get in touch with the NetTrace Security team. Submit an enquiry about our cyber attack detection demo prototype.'
+    'Get in touch with the URL Tracer Security team. Submit an enquiry about our cyber attack detection demo prototype.'
   );
 
   const navigate = useNavigate();

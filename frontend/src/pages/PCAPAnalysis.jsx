@@ -69,7 +69,7 @@ function ResultCard({ icon: Icon, label, value, accentColor = '#035352' }) {
 }
 
 export default function PCAPAnalysis() {
-  usePageMeta('PCAP Analysis', 'NetTrace Security — Upload PCAP files for automated HTTP extraction and cyberattack detection.');
+  usePageMeta('PCAP Analysis', 'URL Tracer Security — Upload PCAP files for automated HTTP extraction and cyberattack detection.');
   const [file, setFile]             = useState(null);
   const [processing, setProcessing] = useState(false);
   const [stageIdx, setStageIdx]     = useState(-1);

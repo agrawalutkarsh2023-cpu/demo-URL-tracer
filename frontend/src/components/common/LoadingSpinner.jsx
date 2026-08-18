@@ -29,7 +29,7 @@ export default function LoadingSpinner({ message = 'Loading...' }) {
         </div>
       </div>
       <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{message}</p>
-      <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>NetTrace Security</p>
+      <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>URL Tracer Security</p>
     </div>
   );
 }

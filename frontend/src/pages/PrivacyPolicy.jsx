@@ -5,7 +5,7 @@ import usePageMeta from '../hooks/usePageMeta';
 export default function PrivacyPolicy() {
   usePageMeta(
     'Privacy Policy',
-    'NetTrace Security privacy policy. This is a demo prototype — no real user data, credentials, or production network data is collected or stored.'
+    'URL Tracer Security privacy policy. This is a demo prototype — no real user data, credentials, or production network data is collected or stored.'
   );
 
   const sections = [

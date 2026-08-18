@@ -210,7 +210,7 @@ function QuickAction({ to, icon: Icon, label }) {
 
 // ── Main Dashboard ───────────────────────────────────────────
 export default function Dashboard() {
-  usePageMeta('Dashboard', 'NetTrace Security — Real-time URL threat intelligence and attack detection dashboard.');
+  usePageMeta('Dashboard', 'URL Tracer Security — Real-time URL threat intelligence and attack detection dashboard.');
   const navigate = useNavigate();
 
   const [dashboard, setDashboard] = useState(null);
@@ -239,7 +239,7 @@ export default function Dashboard() {
 
   useEffect(() => { loadData(); }, []);
 
-  if (loading) return <LoadingSpinner message="Loading NetTrace dashboard..." />;
+  if (loading) return <LoadingSpinner message="Loading URL Tracer dashboard..." />;
 
   // Derived metric — no invented data
   const attempts = (dashboard.total_attacks ?? 0) - (dashboard.potential_successes ?? 0);

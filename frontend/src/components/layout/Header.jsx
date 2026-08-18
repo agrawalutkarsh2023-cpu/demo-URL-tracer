@@ -14,7 +14,7 @@ const PAGE_META = {
 
 export default function Header({ onMenuClick }) {
   const { pathname } = useLocation();
-  const info = PAGE_META[pathname] ?? { title: 'NetTrace Security', subtitle: 'Demo Prototype' };
+  const info = PAGE_META[pathname] ?? { title: 'URL Tracer Security', subtitle: 'Demo Prototype' };
   const [now, setNow] = useState(new Date());
 
   // Tick clock every second

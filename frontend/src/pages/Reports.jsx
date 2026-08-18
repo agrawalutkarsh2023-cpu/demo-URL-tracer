@@ -40,7 +40,7 @@ function Section({ title, children, defaultOpen = false }) {
 }
 
 export default function Reports() {
-  usePageMeta('Reports', 'NetTrace Security — Export and review detection reports, attack logs, and IP intelligence data.');
+  usePageMeta('Reports', 'URL Tracer Security — Export and review detection reports, attack logs, and IP intelligence data.');
   const successCount = mockAttacks.filter(a => a.result === 'POTENTIAL_SUCCESS').length;
   const critCount    = mockAttacks.filter(a => a.severity === 'CRITICAL').length;
   const ipProfiles   = Object.values(mockIPProfiles);

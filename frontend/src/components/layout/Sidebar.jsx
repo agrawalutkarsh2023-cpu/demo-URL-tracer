@@ -49,7 +49,7 @@ export default function Sidebar() {
 
         <div className="min-w-0">
           <span className="text-base font-bold tracking-tight truncate block" style={{ color: '#F3E8BC' }}>
-            NetTrace
+            URL Tracer
           </span>
           <p className="text-[10px] font-mono tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
             Security Platform

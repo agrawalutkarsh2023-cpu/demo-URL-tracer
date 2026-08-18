@@ -171,7 +171,7 @@ function AttackDetail({ attack, onClose }) {
 
 // ── Main ───────────────────────────────────────────────────
 export default function AttackExplorer() {
-  usePageMeta('Attack Explorer', 'NetTrace Security — Browse, filter and inspect all detected URL-based cyberattacks.');
+  usePageMeta('Attack Explorer', 'URL Tracer Security — Browse, filter and inspect all detected URL-based cyberattacks.');
   const [attacks, setAttacks]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const [selected, setSelected] = useState(null);

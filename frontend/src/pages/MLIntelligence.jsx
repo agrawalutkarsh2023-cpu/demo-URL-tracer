@@ -57,7 +57,7 @@ const DEMO_PAYLOADS = [
 ];
 
 export default function MLIntelligence() {
-  usePageMeta('ML Intelligence', 'NetTrace Security — Machine-learning attack classification engine and URL predictor.');
+  usePageMeta('ML Intelligence', 'URL Tracer Security — Machine-learning attack classification engine and URL predictor.');
   const [status,  setStatus]  = useState(null);
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
