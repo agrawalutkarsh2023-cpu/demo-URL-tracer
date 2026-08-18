@@ -2,32 +2,41 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Activity, ShieldAlert, Globe, CheckCircle2, RefreshCw,
-  FileSearch, Brain, ArrowRight, Zap, Shield, Clock,
-  TrendingUp, AlertTriangle, ChevronRight, Target, BarChart2
+  FileSearch, Brain, ArrowRight, Shield, Clock,
+  AlertTriangle, ChevronRight, Target, BarChart2,
+  Crosshair, Wifi
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import usePageMeta from '../hooks/usePageMeta.js';
 
-import { getDashboard, getAttacks } from '../api/apiService.js';
-import StatCard       from '../components/common/StatCard.jsx';
-import RiskBadge      from '../components/common/RiskBadge.jsx';
-import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
-import AttackChart    from '../components/charts/AttackChart.jsx';
-import SeverityChart  from '../components/charts/SeverityChart.jsx';
-import Timeline       from '../components/charts/Timeline.jsx';
+import { getDashboard, getAttacks, getTopSourceIPs } from '../api/apiService.js';
+import StatCard        from '../components/common/StatCard.jsx';
+import ChartCard       from '../components/common/ChartCard.jsx';
+import RiskBadge       from '../components/common/RiskBadge.jsx';
+import LoadingSpinner  from '../components/common/LoadingSpinner.jsx';
+import AttackChart     from '../components/charts/AttackChart.jsx';
+import SeverityChart   from '../components/charts/SeverityChart.jsx';
+import Timeline        from '../components/charts/Timeline.jsx';
+import TopIPsChart     from '../components/charts/TopIPsChart.jsx';
 
-// ── Simulated live activity stream ──────────────────────────
+// ── Live Activity Stream data ────────────────────────────────
 const STREAM_EVENTS = [
   { type: 'SQL Injection',  ip: '192.168.1.25', time: '03:42:18', sev: 'CRITICAL' },
-  { type: 'XSS Attack',     ip: '10.0.0.14',    time: '03:41:52', sev: 'HIGH' },
-  { type: 'Dir Traversal',  ip: '172.16.0.8',   time: '03:41:05', sev: 'MEDIUM' },
-  { type: 'PCAP Analyzed',  ip: '—',            time: '03:40:31', sev: 'LOW' },
-  { type: 'Brute Force',    ip: '192.168.0.55',  time: '03:39:47', sev: 'HIGH' },
+  { type: 'XSS Attack',     ip: '10.0.0.14',    time: '03:41:52', sev: 'HIGH'     },
+  { type: 'Dir Traversal',  ip: '172.16.0.8',   time: '03:41:05', sev: 'MEDIUM'   },
+  { type: 'PCAP Analyzed',  ip: '—',            time: '03:40:31', sev: 'LOW'      },
+  { type: 'Brute Force',    ip: '192.168.0.55', time: '03:39:47', sev: 'HIGH'     },
+  { type: 'SSRF Probe',     ip: '10.10.10.12',  time: '03:38:22', sev: 'HIGH'     },
 ];
 
-const SEV_DOT = { CRITICAL: '#f87171', HIGH: '#fb923c', MEDIUM: '#fbbf24', LOW: '#4ade80' };
+const SEV_DOT = {
+  CRITICAL: '#f87171',
+  HIGH:     '#fb923c',
+  MEDIUM:   '#fbbf24',
+  LOW:      '#4ade80',
+};
 
-// ── Threat Detail Drawer ────────────────────────────────────
+// ── Threat Detail Drawer ─────────────────────────────────────
 function ThreatDrawer({ attack, onClose }) {
   if (!attack) return null;
 
@@ -37,21 +46,22 @@ function ThreatDrawer({ attack, onClose }) {
     attack.severity === 'MEDIUM'   ? '#fbbf24' : '#4ade80';
 
   const circumference = 2 * Math.PI * 40;
-  const confidence = attack.confidence ?? 0.9;
-  const offset = circumference * (1 - confidence);
+  const confidence    = attack.confidence ?? 0.9;
+  const offset        = circumference * (1 - confidence);
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 z-50"
         style={{ background: 'rgba(2,8,8,0.7)', backdropFilter: 'blur(4px)' }}
         onClick={onClose}
       />
-      {/* Drawer */}
       <aside className="drawer z-50">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid rgba(3,83,82,0.2)' }}>
+        <div
+          className="flex items-center justify-between px-6 py-5 flex-shrink-0"
+          style={{ borderBottom: '1px solid rgba(3,83,82,0.2)' }}
+        >
           <div>
             <div className="flex items-center gap-2 mb-1">
               <RiskBadge severity={attack.severity} />
@@ -61,8 +71,8 @@ function ThreatDrawer({ attack, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ background: 'rgba(3,83,82,0.12)', border: '1px solid rgba(3,83,82,0.25)' }}
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: 'rgba(3,83,82,0.12)', border: '1px solid rgba(3,83,82,0.25)', color: 'var(--text-secondary)' }}
           >
             ✕
           </button>
@@ -70,7 +80,7 @@ function ThreatDrawer({ attack, onClose }) {
 
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
-          {/* Attack type header */}
+          {/* Confidence gauge */}
           <div className="text-center py-4">
             <div className="relative w-24 h-24 mx-auto mb-3">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -98,10 +108,11 @@ function ThreatDrawer({ attack, onClose }) {
           {/* Fields grid */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Source IP',   value: attack.source_ip,  accent: true },
-              { label: 'Timestamp',   value: format(parseISO(attack.timestamp), 'MM/dd HH:mm:ss'), mono: true },
-              { label: 'Method',      value: attack.detection_method },
-              { label: 'Result',      value: attack.result === 'POTENTIAL_SUCCESS' ? '⚡ Potential Success' : '⚠ Attempt',
+              { label: 'Source IP', value: attack.source_ip, accent: true },
+              { label: 'Timestamp', value: format(parseISO(attack.timestamp), 'MM/dd HH:mm:ss'), mono: true },
+              { label: 'Method',    value: attack.detection_method },
+              { label: 'Result',
+                value: attack.result === 'POTENTIAL_SUCCESS' ? '⚡ Potential Success' : '⚠ Attempt',
                 color: attack.result === 'POTENTIAL_SUCCESS' ? '#f87171' : '#fbbf24' },
             ].map(({ label, value, mono, accent, color }) => (
               <div
@@ -147,41 +158,78 @@ function ThreatDrawer({ attack, onClose }) {
             </div>
           </div>
 
-          {/* Simulated data notice */}
-          <div className="flex items-start gap-2 rounded-lg px-3 py-2.5 text-xs"
-               style={{ background: 'rgba(243,232,188,0.05)', border: '1px solid rgba(243,232,188,0.12)' }}>
+          {/* Disclaimer */}
+          <div
+            className="flex items-start gap-2 rounded-lg px-3 py-2.5 text-xs"
+            style={{ background: 'rgba(243,232,188,0.05)', border: '1px solid rgba(243,232,188,0.12)' }}
+          >
             <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#F3E8BC' }} />
             <span style={{ color: 'var(--text-muted)' }}>Simulated / synthetic data. Not real intelligence.</span>
           </div>
         </div>
 
-        {/* Footer action */}
+        {/* Footer */}
         <div className="px-6 py-4 flex-shrink-0" style={{ borderTop: '1px solid rgba(3,83,82,0.2)' }}>
-          <button className="btn-primary w-full justify-center">
-            <Shield className="w-4 h-4" />
-            Block IP Address
-          </button>
+          <Link to="/attacks" className="btn-primary w-full justify-center">
+            <ShieldAlert className="w-4 h-4" />
+            View in Attack Explorer
+          </Link>
         </div>
       </aside>
     </>
   );
 }
 
-// ── Main Dashboard ──────────────────────────────────────────
+// ── Quick Action Button ──────────────────────────────────────
+function QuickAction({ to, icon: Icon, label }) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+      style={{
+        background: 'rgba(3,83,82,0.08)',
+        border: '1px solid rgba(3,83,82,0.20)',
+        color: 'var(--text-secondary)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = 'rgba(3,83,82,0.18)';
+        e.currentTarget.style.borderColor = 'rgba(3,83,82,0.40)';
+        e.currentTarget.style.color = '#F3E8BC';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = 'rgba(3,83,82,0.08)';
+        e.currentTarget.style.borderColor = 'rgba(3,83,82,0.20)';
+        e.currentTarget.style.color = 'var(--text-secondary)';
+      }}
+    >
+      <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+      {label}
+    </Link>
+  );
+}
+
+// ── Main Dashboard ───────────────────────────────────────────
 export default function Dashboard() {
   usePageMeta('Dashboard', 'NetTrace Security — Real-time URL threat intelligence and attack detection dashboard.');
   const navigate = useNavigate();
+
   const [dashboard, setDashboard] = useState(null);
-  const [recent, setRecent]       = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [selected, setSelected]   = useState(null);
+  const [recent,    setRecent]    = useState([]);
+  const [topIPs,    setTopIPs]    = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [selected,  setSelected]  = useState(null);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [dash, attacks] = await Promise.all([getDashboard(), getAttacks()]);
+      const [dash, attacks, ips] = await Promise.all([
+        getDashboard(),
+        getAttacks(),
+        getTopSourceIPs(6),
+      ]);
       setDashboard(dash);
-      setRecent(attacks.slice(0, 10));
+      setRecent(attacks.slice(0, 8));
+      setTopIPs(ips);
     } catch (err) {
       console.error(err);
     } finally {
@@ -193,63 +241,60 @@ export default function Dashboard() {
 
   if (loading) return <LoadingSpinner message="Loading NetTrace dashboard..." />;
 
+  // Derived metric — no invented data
+  const attempts = (dashboard.total_attacks ?? 0) - (dashboard.potential_successes ?? 0);
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
 
-      {/* ── Hero CTA Strip ────────────────────────────── */}
-      <div className="cta-strip">
-        <div className="cta-strip-inner">
-          <div className="cta-strip-text">
-            {/* Live indicator */}
-            <div className="flex items-center gap-2 mb-2">
-              <span className="live-dot" />
-              <span className="text-xs font-mono font-semibold uppercase tracking-widest" style={{ color: '#4ade80' }}>
-                Live Threat Monitoring
-              </span>
-            </div>
-            <h2 className="text-lg md:text-xl font-bold leading-tight" style={{ color: '#F3E8BC' }}>
-              NetTrace Security
-            </h2>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-              Real-time URL threat intelligence and attack detection platform.
-            </p>
+      {/* ── Top Bar: title + quick actions + refresh ──── */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Page title + live indicator */}
+        <div className="flex items-center gap-2.5 mr-auto">
+          <div className="flex items-center gap-1.5">
+            <span className="live-dot" />
+            <span className="text-[11px] font-mono font-semibold uppercase tracking-widest" style={{ color: '#4ade80' }}>
+              Live
+            </span>
           </div>
-          <div className="cta-strip-actions">
-            <Link to="/attacks" id="cta-attacks" className="cta-btn cta-btn-primary">
-              <ShieldAlert className="w-4 h-4" />
-              Explore Attacks
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-            <Link to="/ip-intelligence" id="cta-ip" className="cta-btn cta-btn-secondary">
-              <Globe className="w-4 h-4" />
-              Analyse IP
-            </Link>
-            <Link to="/pcap" id="cta-pcap" className="cta-btn cta-btn-secondary">
-              <FileSearch className="w-4 h-4" />
-              Upload PCAP
-            </Link>
-          </div>
+          <span className="text-sm font-semibold" style={{ color: '#F3E8BC' }}>
+            Security Overview
+          </span>
+          <span
+            className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+            style={{
+              background: 'rgba(243,232,188,0.08)',
+              border: '1px solid rgba(243,232,188,0.15)',
+              color: 'var(--text-muted)',
+            }}
+          >
+            DEMO DATA
+          </span>
+        </div>
+
+        {/* Quick actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          <QuickAction to="/attacks"         icon={ShieldAlert} label="Attacks"      />
+          <QuickAction to="/ip-intelligence" icon={Globe}       label="IP Intel"     />
+          <QuickAction to="/pcap"            icon={FileSearch}  label="PCAP"         />
+          <QuickAction to="/ml"              icon={Brain}       label="ML"           />
+        </div>
+
+        {/* Refresh + timestamp */}
+        <div className="flex items-center gap-2 pl-1" style={{ borderLeft: '1px solid rgba(3,83,82,0.25)' }}>
+          <Clock className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+          <span className="text-[11px] font-mono hidden sm:inline" style={{ color: 'var(--text-muted)' }}>
+            {format(new Date(), 'HH:mm:ss')}
+          </span>
+          <button onClick={loadData} className="btn-secondary text-xs gap-1.5 px-2.5 py-1.5">
+            <RefreshCw className="w-3 h-3" />
+            Refresh
+          </button>
         </div>
       </div>
 
-      {/* ── Top bar: refresh + timestamp ─────────────── */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Clock className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
-          <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-            Last refresh: {format(new Date(), 'HH:mm:ss')}
-            &nbsp;·&nbsp;
-            <span style={{ color: '#F3E8BC' }}>DEMO DATA</span>
-          </p>
-        </div>
-        <button onClick={loadData} className="btn-secondary text-xs gap-1.5 px-3 py-1.5">
-          <RefreshCw className="w-3.5 h-3.5" />
-          Refresh
-        </button>
-      </div>
-
-      {/* ── Stat Cards ────────────────────────────────── */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* ── Row 1: 5 KPI Cards ────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
         <StatCard
           label="Total Requests"
           value={dashboard.total_requests}
@@ -259,89 +304,67 @@ export default function Dashboard() {
           sub="Last 7 days"
         />
         <StatCard
-          label="Total Attacks"
+          label="Attacks Detected"
           value={dashboard.total_attacks}
           icon={ShieldAlert}
           color="red"
           trend={8}
-          sub="Detected & simulated"
+          sub="All severities"
+        />
+        <StatCard
+          label="Potential Successes"
+          value={dashboard.potential_successes}
+          icon={Crosshair}
+          color="purple"
+          trend={-5}
+          sub="Possibly exploited"
+        />
+        <StatCard
+          label="Attempts Blocked"
+          value={attempts}
+          icon={CheckCircle2}
+          color="orange"
+          sub="Detected attempts"
         />
         <StatCard
           label="High-Risk IPs"
           value={dashboard.high_risk_ips}
           icon={Globe}
-          color="orange"
-          sub="CRITICAL / HIGH risk"
-        />
-        <StatCard
-          label="Potential Successes"
-          value={dashboard.potential_successes}
-          icon={Target}
-          color="purple"
-          trend={-5}
-          sub="Possibly exploited"
+          color="cream"
+          sub="CRITICAL / HIGH"
         />
       </div>
 
-      {/* ── Charts row ────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Attack distribution */}
-        <div className="lg:col-span-2 glass-card p-5">
-          <div className="section-header" style={{ padding: '0 0 16px 0', marginBottom: 12 }}>
-            <h2 className="section-title flex items-center gap-2">
-              <BarChart2 className="w-4 h-4" style={{ color: '#F3E8BC' }} />
-              Attack Distribution
-            </h2>
-            <span className="chip">SIMULATED</span>
-          </div>
-          <AttackChart data={dashboard.attack_distribution} />
-        </div>
-
-        {/* Severity donut */}
-        <div className="glass-card p-5">
-          <div className="section-header" style={{ padding: '0 0 16px 0', marginBottom: 12 }}>
-            <h2 className="section-title flex items-center gap-2">
-              <Target className="w-4 h-4" style={{ color: '#F3E8BC' }} />
-              Severity
-            </h2>
-            <span className="chip">SIMULATED</span>
-          </div>
-          <SeverityChart data={dashboard.severity_distribution} />
-        </div>
-      </div>
-
-      {/* ── Timeline + Activity Stream ─────────────────── */}
+      {/* ── Row 2: Timeline (wide) + Activity Stream ─── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        {/* Timeline chart */}
-        <div className="xl:col-span-2 glass-card p-5">
-          <div className="section-header" style={{ padding: '0 0 16px 0', marginBottom: 12 }}>
-            <h2 className="section-title flex items-center gap-2">
-              <Activity className="w-4 h-4" style={{ color: '#F3E8BC' }} />
-              Attack Timeline — Last 7 Days
-            </h2>
-            <span className="chip">SIMULATED</span>
-          </div>
-          <Timeline data={dashboard.attack_timeline} />
+        {/* Attack timeline — takes 2/3 */}
+        <div className="xl:col-span-2">
+          <ChartCard
+            title="Attack Activity — Last 7 Days"
+            icon={Activity}
+            badge="SIMULATED"
+            className="h-full"
+          >
+            <Timeline data={dashboard.attack_timeline} height={220} />
+          </ChartCard>
         </div>
 
-        {/* Live Activity Stream */}
-        <div className="glass-card p-5">
-          <div className="section-header" style={{ padding: '0 0 16px 0', marginBottom: 12 }}>
-            <div className="flex items-center gap-2">
-              <span className="live-dot" />
-              <h2 className="section-title">Activity Stream</h2>
-            </div>
-            <span className="chip">LIVE</span>
-          </div>
-          <div className="space-y-0">
+        {/* Live activity stream — takes 1/3 */}
+        <ChartCard
+          title="Activity Stream"
+          icon={Wifi}
+          action={<span className="chip">LIVE</span>}
+          className="h-full"
+        >
+          <div className="space-y-0 -mx-1">
             {STREAM_EVENTS.map((ev, i) => (
               <div
                 key={i}
                 className="stream-item"
-                style={{ animationDelay: `${i * 0.08}s` }}
+                style={{ animationDelay: `${i * 0.07}s` }}
               >
                 <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5"
                   style={{ background: SEV_DOT[ev.sev] }}
                 />
                 <div className="flex-1 min-w-0">
@@ -355,26 +378,83 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Security score */}
+          {/* Security score mini-card */}
           <div
-            className="mt-4 rounded-xl p-3 text-center"
+            className="mt-3 rounded-xl p-3 text-center"
             style={{ background: 'rgba(3,83,82,0.12)', border: '1px solid rgba(3,83,82,0.22)' }}
           >
-            <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>
               System Security Score
             </p>
             <p className="text-2xl font-bold num-display" style={{ color: '#F3E8BC' }}>94%</p>
-            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>All systems operational</p>
+            <p className="text-[10px] mt-0.5" style={{ color: '#4ade80' }}>● All systems operational</p>
           </div>
+        </ChartCard>
+      </div>
+
+      {/* ── Row 3: Attack Distribution + Severity + Top IPs ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+
+        {/* Attack type distribution — 2/5 */}
+        <div className="xl:col-span-2">
+          <ChartCard
+            title="Attack Distribution"
+            icon={BarChart2}
+            badge="SIMULATED"
+            className="h-full"
+          >
+            <AttackChart data={dashboard.attack_distribution} />
+          </ChartCard>
+        </div>
+
+        {/* Severity breakdown — 1/5 */}
+        <div className="xl:col-span-1">
+          <ChartCard
+            title="Severity"
+            icon={Target}
+            badge="SIMULATED"
+            className="h-full"
+          >
+            <SeverityChart data={dashboard.severity_distribution} />
+          </ChartCard>
+        </div>
+
+        {/* Top Source IPs — 2/5 */}
+        <div className="xl:col-span-2">
+          <ChartCard
+            title="Top Source IPs"
+            icon={Globe}
+            action={
+              <button
+                onClick={() => navigate('/ip-intelligence')}
+                className="text-[11px] flex items-center gap-1 transition-colors"
+                style={{ color: 'var(--text-muted)' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#F3E8BC'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+              >
+                IP Intel <ChevronRight className="w-3 h-3" />
+              </button>
+            }
+            className="h-full"
+          >
+            <TopIPsChart data={topIPs} />
+          </ChartCard>
         </div>
       </div>
 
-      {/* ── Recent Threats Table ─────────────────────── */}
+      {/* ── Row 4: Recent Threat Detections table ─────── */}
       <div className="glass-card overflow-hidden">
-        <div className="section-header">
-          <h2 className="section-title flex items-center gap-2">
+        {/* Card header */}
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(3,83,82,0.12)' }}>
+          <h2 className="text-sm font-semibold flex items-center gap-2" style={{ color: '#F3E8BC' }}>
             <ShieldAlert className="w-4 h-4" style={{ color: '#F3E8BC' }} />
             Recent Threat Detections
+            <span
+              className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+              style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}
+            >
+              {recent.length} shown
+            </span>
           </h2>
           <button
             onClick={() => navigate('/attacks')}
@@ -386,6 +466,8 @@ export default function Dashboard() {
             View all <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
+
+        {/* Table */}
         <div className="overflow-x-auto">
           <table className="data-table">
             <thead>
@@ -396,7 +478,8 @@ export default function Dashboard() {
                 <th>Severity</th>
                 <th>Confidence</th>
                 <th>Result</th>
-                <th>Action</th>
+                <th>Method</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -407,22 +490,23 @@ export default function Dashboard() {
                   className={selected?.id === atk.id ? 'selected' : ''}
                 >
                   <td className="font-mono text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-                    {format(parseISO(atk.timestamp), 'MM/dd HH:mm:ss')}
+                    {format(parseISO(atk.timestamp), 'MM/dd HH:mm')}
                   </td>
                   <td className="font-mono text-xs whitespace-nowrap" style={{ color: '#F3E8BC' }}>
                     {atk.source_ip}
                   </td>
-                  <td style={{ color: 'var(--text-primary)' }}>{atk.attack_type}</td>
-                  <td><RiskBadge severity={atk.severity} /></td>
+                  <td className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                    {atk.attack_type}
+                  </td>
+                  <td>
+                    <RiskBadge severity={atk.severity} />
+                  </td>
                   <td>
                     <div className="flex items-center gap-2">
-                      <div className="progress-bar w-16">
+                      <div className="progress-bar w-14">
                         <div
                           className="progress-fill"
-                          style={{
-                            width: `${atk.confidence * 100}%`,
-                            background: '#035352',
-                          }}
+                          style={{ width: `${atk.confidence * 100}%`, background: '#035352' }}
                         />
                       </div>
                       <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
@@ -431,10 +515,15 @@ export default function Dashboard() {
                     </div>
                   </td>
                   <td>
-                    <span className="text-xs font-mono font-semibold"
-                          style={{ color: atk.result === 'POTENTIAL_SUCCESS' ? '#f87171' : '#fbbf24' }}>
+                    <span
+                      className="text-[11px] font-mono font-semibold"
+                      style={{ color: atk.result === 'POTENTIAL_SUCCESS' ? '#f87171' : '#fbbf24' }}
+                    >
                       {atk.result === 'POTENTIAL_SUCCESS' ? '⚡ SUCCESS' : '⚠ ATTEMPT'}
                     </span>
+                  </td>
+                  <td className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                    {atk.detection_method}
                   </td>
                   <td>
                     <button
@@ -453,6 +542,24 @@ export default function Dashboard() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Footer */}
+        <div
+          className="flex items-center justify-between px-5 py-3"
+          style={{ borderTop: '1px solid rgba(3,83,82,0.10)' }}
+        >
+          <p className="text-[11px] font-mono" style={{ color: 'var(--text-muted)' }}>
+            Showing 8 of {dashboard.total_attacks} total detections
+          </p>
+          <button
+            onClick={() => navigate('/attacks')}
+            className="btn-primary text-xs px-3 py-1.5"
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            Explore All Attacks
+            <ArrowRight className="w-3 h-3" />
+          </button>
         </div>
       </div>
 

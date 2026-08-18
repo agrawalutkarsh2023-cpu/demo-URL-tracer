@@ -104,7 +104,18 @@ export default function IPIntelligence() {
   return (
     <div className="space-y-5 animate-fade-in">
 
-      {/* ── Search Panel ──────────────────────────────── */}
+      {/* ── Page heading ──────────────────────── */}
+      <div>
+        <h1 className="text-base font-bold flex items-center gap-2" style={{ color: '#F3E8BC' }}>
+          <Globe className="w-4 h-4" />
+          IP Intelligence
+        </h1>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          Investigate source IPs, review risk scores, and explore attack history
+        </p>
+      </div>
+
+      {/* ── Search Panel ────────────────────── */}
       <div className="glass-card p-5">
         <label className="block text-xs font-semibold uppercase tracking-widest mb-3"
                style={{ color: 'var(--text-muted)' }}>

@@ -9,6 +9,7 @@ import {
   mockIPProfiles,
   mockPCAPResult,
   getExportData,
+  getTopSourceIPs as computeTopIPs,
 } from '../mock/mockData.js';
 
 const USE_MOCK = true; // ← Flip to false when backend is ready
@@ -268,4 +269,17 @@ export async function getMLMetrics() {
     };
   }
   return request('/ml/metrics');
+}
+
+// ─── Top Source IPs ────────────────────────────────────────────────────────────
+/**
+ * Returns the top attacking source IPs derived from the attacks dataset.
+ * Uses real data — no invented values.
+ */
+export async function getTopSourceIPs(limit = 6) {
+  if (USE_MOCK) {
+    await delay(150);
+    return computeTopIPs(limit);
+  }
+  return request(`/stats/top-ips?limit=${limit}`);
 }

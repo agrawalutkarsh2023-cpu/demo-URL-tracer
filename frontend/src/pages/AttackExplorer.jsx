@@ -201,14 +201,16 @@ export default function AttackExplorer() {
   return (
     <div className="space-y-5 animate-fade-in">
 
-      {/* ── Header row ────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4" style={{ color: '#F3E8BC' }} />
-          <span className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
-            <span style={{ color: '#F3E8BC', fontWeight: 700 }}>{attacks.length}</span>
-            {' '}attack{attacks.length !== 1 ? 's' : ''} found
-          </span>
+      {/* ── Page heading ──────────────────────── */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-base font-bold flex items-center gap-2" style={{ color: '#F3E8BC' }}>
+            <ShieldAlert className="w-4 h-4" />
+            Attack Explorer
+          </h1>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            Browse, filter and inspect all detected URL-based cyberattacks
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <ExportButton type="csv" />
@@ -216,10 +218,27 @@ export default function AttackExplorer() {
         </div>
       </div>
 
-      {/* ── Filters ───────────────────────────────────── */}
+      {/* ── Filters ────────────────────────────── */}
       <FilterBar filters={filters} onFilter={setFilters} />
 
-      {/* ── Table ─────────────────────────────────────── */}
+      {/* ── Results summary + Table ───────── */}
+      {/* Results summary strip */}
+      {!loading && attacks.length > 0 && (
+        <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+          <span>
+            Showing <strong style={{ color: '#F3E8BC' }}>{paged.length}</strong> of{' '}
+            <strong style={{ color: '#F3E8BC' }}>{attacks.length}</strong> results
+          </span>
+          {(filters.attack_type !== 'ALL' || filters.severity !== 'ALL' || filters.result !== 'ALL' || filters.search || filters.source_ip) && (
+            <span
+              className="px-2 py-0.5 rounded-md font-mono"
+              style={{ background: 'rgba(243,232,188,0.08)', border: '1px solid rgba(243,232,188,0.15)', color: '#F3E8BC' }}
+            >
+              Filtered
+            </span>
+          )}
+        </div>
+      )}
       <div className="glass-card overflow-hidden">
         {loading ? (
           <LoadingSpinner message="Fetching attacks..." />

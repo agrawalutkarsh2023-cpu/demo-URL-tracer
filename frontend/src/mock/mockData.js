@@ -341,3 +341,17 @@ export const getExportData = () => ({
   ip_profiles: Object.values(mockIPProfiles),
   dashboard_summary: mockDashboard,
 });
+
+// ─── Derived: Top Source IPs by Attack Count ───────────────────────────────────
+// Computed from real mockAttacks — not invented.
+export function getTopSourceIPs(limit = 6) {
+  const counts = {};
+  for (const atk of mockAttacks) {
+    counts[atk.source_ip] = (counts[atk.source_ip] ?? 0) + 1;
+  }
+  return Object.entries(counts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, limit)
+    .map(([ip, attacks]) => ({ ip, attacks }));
+}
+

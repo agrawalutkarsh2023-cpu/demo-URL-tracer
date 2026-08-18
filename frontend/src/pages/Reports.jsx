@@ -49,7 +49,18 @@ export default function Reports() {
   return (
     <div className="space-y-5 animate-fade-in">
 
-      {/* ── Notice ────────────────────────────────────── */}
+      {/* ── Page heading ───────────────────── */}
+      <div>
+        <h1 className="text-base font-bold flex items-center gap-2" style={{ color: '#F3E8BC' }}>
+          <FileDown className="w-4 h-4" />
+          Reports & Export
+        </h1>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          Summary statistics and data export for the current analysis session
+        </p>
+      </div>
+
+      {/* ── Notice ─────────────────────────── */}
       <div className="flex items-center gap-2 text-xs rounded-lg px-4 py-2.5"
            style={{ background: 'rgba(243,232,188,0.05)', border: '1px solid rgba(243,232,188,0.12)' }}>
         <Info className="w-4 h-4 flex-shrink-0" style={{ color: '#F3E8BC' }} />
